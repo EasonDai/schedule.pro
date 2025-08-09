@@ -3,11 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>schedule.pro</title>
-    <link rel="icon" href="favicon.ico" type="image/x-icon">
-    <!-- Apple Touch Icons for iOS/iPadOS -->
-    <!-- Apple Touch Icons for iOS/iPadOS -->
-<link rel="apple-touch-icon" href="apple-touch-icon.png">
+    <title>苹果风格课表 - 多种配色</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
@@ -432,7 +428,6 @@
         .theme-purple { background: linear-gradient(135deg, #1f1a2a 0%, #181421 100%); }
         .theme-green { background: linear-gradient(135deg, #0f1e1a 0%, #0c1814 100%); }
         .theme-orange { background: linear-gradient(135deg, #2a1a0f 0%, #20140c 100%); }
-
         /* 新增：课程卡片状态指示器样式 */
         .schedule-card .class-status {
             position: absolute;
@@ -443,19 +438,16 @@
             border-radius: 10px;
             font-weight: 500;
         }
-
         .schedule-card .class-status.status-upcoming {
             background-color: var(--status-upcoming-bg);
             color: var(--status-upcoming-color);
             border: 1px solid var(--status-upcoming-border);
         }
-
         .schedule-card .class-status.status-ongoing {
             background-color: var(--status-ongoing-bg);
             color: var(--status-ongoing-color);
             border: 1px solid var(--status-ongoing-border);
         }
-
         .schedule-card .class-status.status-finished {
             background-color: var(--status-finished-bg);
             color: var(--status-finished-color);
@@ -507,6 +499,8 @@
                         <th>周三</th>
                         <th>周四</th>
                         <th>周五</th>
+                        <th>周六</th> <!-- 新增 -->
+                        <th>周日</th> <!-- 新增 -->
                     </tr>
                 </thead>
                 <tbody id="timetableBody">
@@ -534,13 +528,15 @@
             const baseHeight = 200; // 基础高度
             const maxHeight = window.innerHeight * 0.66; // 最大高度为屏幕的2/3
             const spacing = -50; // 负值实现堆叠效果
-            // 星期名称映射
+            // 星期名称映射 (已更新)
             const dayNames = {
                 1: "周一",
                 2: "周二",
                 3: "周三",
                 4: "周四",
-                5: "周五"
+                5: "周五",
+                6: "周六", // 新增
+                7: "周日"  // 新增
             };
             // 节次名称映射
             const periodNames = {
@@ -554,7 +550,7 @@
                 8: "第8节",
                 9: "第9节"
             };
-            // 课表数据（每天9节课）
+            // 课表数据（每天9节课）(已更新)
             const scheduleData = {
                 1: [ // 星期一
                     { id: 1, name: "数学课", teacher: "李老师", room: "302", startTime: "08:00", endTime: "08:45" },
@@ -610,9 +606,21 @@
                     { id: 43, name: "生物课", teacher: "赵老师", room: "实验室", startTime: "14:55", endTime: "15:40" },
                     { id: 44, name: "历史课", teacher: "孙老师", room: "205", startTime: "15:50", endTime: "16:35" },
                     { id: 45, name: "班会", teacher: "班主任", room: "教室", startTime: "16:45", endTime: "17:30" }
+                ],
+                // --- 新增部分：周六 ---
+                6: [ // 星期六
+                    { id: 46, name: "周末", teacher: "", room: "", startTime: "00:00", endTime: "23:59" }
+                    // 如果需要显示更多“周末”条目以匹配9节课的结构，可以添加更多，但通常一个全天的条目就够了
+                    // { id: 47, name: "周末", teacher: "", room: "", startTime: "00:00", endTime: "23:59" },
+                    // ... (可以继续添加直到第9个)
+                ],
+                // --- 新增部分：周日 ---
+                7: [ // 星期日
+                    { id: 47, name: "周末", teacher: "", room: "", startTime: "00:00", endTime: "23:59" }
+                    // 同样，如果需要可以添加更多
                 ]
+                // --- 新增部分结束 ---
             };
-
             // 更新时间和日期，并检查自动切换课程
             function updateDateTime() {
                 const now = new Date();
@@ -628,7 +636,6 @@
                     minute: '2-digit',
                     second: '2-digit'
                 });
-
                 // 每分钟检查一次当前课程和状态
                 if (now.getSeconds() === 0) {
                     const allClasses = getAllClasses();
@@ -640,31 +647,18 @@
                         const currentEndTime = currentEndHour * 60 + currentEndMinute;
                         const currentTimeInMinutes = now.getHours() * 60 + now.getMinutes();
 
-                        // 判断当前课程是否已结束
-                        // 对于非跨天课程（结束时间 > 开始时间），检查 currentTimeInMinutes > currentEndTime
-                        // 对于跨天课程（结束时间 < 开始时间），这个逻辑也适用，因为只要过了午夜（00:xx），currentTimeInMinutes 就会小于 currentStartTime，但只要过了 endTime，就说明课程结束了。
-                        // 例如：课程 23:00 - 01:00，当前时间 00:30，currentTimeInMinutes=30, currentEndTime=60。 30 < 60，所以课程还没结束。
-                        // 例如：课程 23:00 - 01:00，当前时间 01:30，currentTimeInMinutes=90, currentEndTime=60。 90 > 60，所以课程结束了。
-                        const isCurrentClassOver = currentTimeInMinutes > currentEndTime;
-
-                        // 检查是否新的一天开始了，或者当前索引指向的课程已经过时（例如，当前时间在课程开始前，但课程是昨天的）
+                        // --- 修改部分：更新周末处理逻辑 ---
                         const today = now.getDay(); // 0=周日, 1=周一, ..., 6=周六
-                        let scheduleDayToday = today;
-                        if (today === 0) scheduleDayToday = 7; // 周日转换为7
-                        if (today === 6) scheduleDayToday = 6; // 周六转换为6
-                        if (scheduleDayToday > 5) scheduleDayToday = 1; // 周末设为周一
+                        // 转换为课表中的星期（1=周一, 2=周二, ..., 5=周五, 6=周六, 7=周日)
+                        let scheduleDayToday = today === 0 ? 7 : today;
 
-                        // 检查当前索引指向的课程是否属于今天，以及当前时间是否在该课程开始之前（即课程还没开始）
-                        // 如果课程是今天的，但还没开始，我们不认为它过时。
-                        // 如果课程不是今天的（昨天或更早），我们认为它过时。
-                        // 如果课程是今天的，但已经结束了，上面的 isCurrentClassOver 已经处理了。
-                        const isCurrentIndexOutOfDate = allClasses[currentIndex].day !== scheduleDayToday ||
-                                                        (allClasses[currentIndex].day === scheduleDayToday && currentTimeInMinutes < currentStartTime && currentTimeInMinutes < currentEndTime && isCurrentClassOver);
+                        // 检查当前索引指向的课程是否属于今天
+                        const isCurrentIndexOutOfDate = allClasses[currentIndex].day !== scheduleDayToday;
 
                         // 如果当前课程已结束，或者新的一天开始了（currentIndex 对应的课程不是今天的课程了）
-                        if (isCurrentClassOver) {
+                        const isCurrentClassOver = currentTimeInMinutes > currentEndTime;
+                        if (isCurrentClassOver || isCurrentIndexOutOfDate) {
                             // 需要切换到下一节课
-                            // 最简单的方法是重新调用 getCurrentClassIndex，它会找到最近的或正在进行的课程
                             const newIndex = getCurrentClassIndex();
                             if (newIndex !== currentIndex) {
                                 currentIndex = newIndex;
@@ -681,6 +675,7 @@
                             updateCurrentClass();
                             updateCardStatus(); // 更新状态
                         }
+                        // --- 修改部分结束 ---
                     } else {
                         updateCurrentClass(); // 即使没课也更新一下显示
                     }
@@ -692,7 +687,6 @@
             }
             updateDateTime();
             setInterval(updateDateTime, 1000);
-
             // 切换主题
             themeButtons.forEach(button => {
                 button.addEventListener('click', function() {
@@ -700,7 +694,6 @@
                     document.body.className = `theme-${theme}`;
                 });
             });
-
             // 计算卡片位置和大小
             function calculateCardPosition(index, totalCards) {
                 // 循环处理索引
@@ -743,11 +736,11 @@
                     background: bgColor
                 };
             }
-
-            // 获取所有课程（按顺序）
+            // 获取所有课程（按顺序）(已更新)
             function getAllClasses() {
                 const allClasses = [];
-                for (let day = 1; day <= 5; day++) {
+                // 修改循环范围以包含周六(6)和周日(7)
+                for (let day = 1; day <= 7; day++) {
                     const dayClasses = scheduleData[day] || [];
                     dayClasses.forEach((period, index) => {
                         allClasses.push({
@@ -759,7 +752,6 @@
                 }
                 return allClasses;
             }
-
             // 创建所有课程滑块
             function createClassCards() {
                 scheduleContainer.innerHTML = '';
@@ -792,7 +784,6 @@
                 updateCardStatus();
                 // --- 新增结束 ---
             }
-
             // 更新所有卡片位置和大小
             function updateCards() {
                 const allClasses = getAllClasses();
@@ -818,29 +809,27 @@
                 // 更新进度条
                 const progress = ((currentIndex % totalCards) / totalCards) * 100;
                 progressBar.style.width = `${progress}%`;
-
                 // --- 新增：在更新卡片位置/大小后，也更新一次状态 ---
                 updateCardStatus();
                 // --- 新增结束 ---
             }
-
-            // 获取当前时间的课程索引（根据真实时间）
+            // 获取当前时间的课程索引（根据真实时间）(已更新)
             function getCurrentClassIndex() {
                 const now = new Date();
                 const currentTime = now.getHours() * 60 + now.getMinutes(); // 当前时间（分钟）
                 const dayOfWeek = now.getDay(); // 0=周日, 1=周一, ..., 6=周六
-                // 转换为课表中的星期（1=周一, 2=周二, ..., 5=周五）
-                let scheduleDay = dayOfWeek;
-                if (dayOfWeek === 0) scheduleDay = 7; // 周日转换为7
-                if (dayOfWeek === 6) scheduleDay = 6; // 周六转换为6
-                // 如果是周末，设置为周一
-                if (scheduleDay > 5) scheduleDay = 1;
+                // 转换为课表中的星期（1=周一, 2=周二, ..., 5=周五, 6=周六, 7=周日)
+                // 注意：JavaScript 的 getDay() 中 0 是周日，我们需要将其映射为 7
+                let scheduleDay = dayOfWeek === 0 ? 7 : dayOfWeek;
+
                 // 获取所有课程
                 const allClasses = getAllClasses();
+
                 // 查找当前时间对应的课程
                 let currentClassIndex = -1;
                 let nextClassIndex = -1;
                 let minTimeDiff = Infinity;
+
                 for (let i = 0; i < allClasses.length; i++) {
                     const classInfo = allClasses[i];
                     // 如果是当天的课程
@@ -863,33 +852,33 @@
                         }
                     }
                 }
+
                 // 如果找到了下一个课程，返回它
                 if (nextClassIndex !== -1) {
                     return nextClassIndex;
                 }
-                // 如果当前时间在所有课程之后，返回第一个课程 (第二天的第一节)
-                // 简单处理：返回所有课程中的第一个
-                // 更严谨的做法是找到第二天的第一节课
-                 // 查找 scheduleDay + 1 到 5 的第一天的第一节课
-                 for (let d = scheduleDay + 1; d <= 5; d++) {
-                     if (scheduleData[d] && scheduleData[d].length > 0) {
-                         // 找到该天在 allClasses 中的第一个索引
-                         for(let i=0; i < allClasses.length; i++) {
-                             if (allClasses[i].day === d && allClasses[i].period === 1) {
-                                 return i;
-                             }
-                         }
-                     }
-                 }
-                 // 如果没找到，查找周一的第一节课 (处理周末或周五晚上的情况)
-                 for(let i=0; i < allClasses.length; i++) {
-                     if (allClasses[i].day === 1 && allClasses[i].period === 1) {
-                         return i;
-                     }
-                 }
+
+                // 如果当前时间在所有课程之后，或者在周末，寻找下一个工作日的第一节课或周末课程
+                // 先查找 scheduleDay + 1 到 7 (周日) 的第一天的第一节课
+                for (let d = scheduleDay + 1; d <= 7; d++) {
+                    if (scheduleData[d] && scheduleData[d].length > 0) {
+                        // 找到该天在 allClasses 中的第一个索引
+                        for(let i=0; i < allClasses.length; i++) {
+                            if (allClasses[i].day === d && allClasses[i].period === 1) {
+                                return i;
+                            }
+                        }
+                    }
+                }
+                // 如果没找到（例如现在是周日晚上），查找周一的第一节课
+                for(let i=0; i < allClasses.length; i++) {
+                    if (allClasses[i].day === 1 && allClasses[i].period === 1) {
+                        return i;
+                    }
+                }
+
                 return 0; // fallback
             }
-
             // 更新当前课程显示
             function updateCurrentClass() {
                 const allClasses = getAllClasses();
@@ -900,36 +889,26 @@
                     currentIndicator.textContent = '当前无课程';
                 }
             }
-
             // --- 新增函数：更新所有课程卡片的状态 ---
             function updateCardStatus() {
                 const allClasses = getAllClasses();
                 const now = new Date();
                 const currentTimeInMinutes = now.getHours() * 60 + now.getMinutes(); // 获取当前时间（分钟）
-
                 const today = now.getDay(); // 0=周日, 1=周一, ..., 6=周六
-                // 转换为课表中的星期（1=周一, 2=周二, ..., 5=周五）
-                let scheduleDayToday = today;
-                if (today === 0) scheduleDayToday = 7; // 周日转换为7
-                if (today === 6) scheduleDayToday = 6; // 周六转换为6
-                // 如果是周末，设置为周一
-                if (scheduleDayToday > 5) scheduleDayToday = 1;
+                // 转换为课表中的星期（1=周一, 2=周二, ..., 5=周五, 6=周六, 7=周日)
+                let scheduleDayToday = today === 0 ? 7 : today;
 
                 allClasses.forEach((classInfo, index) => {
                     const statusElement = document.getElementById(`status-${index}`);
                     if (!statusElement) return; // 防御性检查
-
                     // 移除旧的状态类
                     statusElement.classList.remove('status-upcoming', 'status-ongoing', 'status-finished');
-
                     const [startHour, startMinute] = classInfo.startTime.split(':').map(Number);
                     const [endHour, endMinute] = classInfo.endTime.split(':').map(Number);
                     const startTimeInMinutes = startHour * 60 + startMinute;
                     const endTimeInMinutes = endHour * 60 + endMinute;
-
                     let statusText = "状态";
                     let statusClass = "";
-
                     // 判断状态
                     if (classInfo.day < scheduleDayToday || (classInfo.day === scheduleDayToday && endTimeInMinutes < currentTimeInMinutes)) {
                         // 课程日期在今天之前，或者课程日期是今天但结束时间已过
@@ -944,13 +923,11 @@
                         statusText = "上课中";
                         statusClass = "status-ongoing";
                     }
-
                     statusElement.textContent = statusText;
                     statusElement.classList.add(statusClass);
                 });
             }
             // --- 新增函数结束 ---
-
             // 回到当前课程
             todayBtn.addEventListener('click', function() {
                 currentIndex = getCurrentClassIndex();
@@ -958,19 +935,16 @@
                 updateCurrentClass();
                 updateCardStatus(); // 新增：点击“回到当前”后也更新状态
             });
-
             // 打开完整课表
             editBtn.addEventListener('click', function() {
                 renderTimetable();
                 timetableSection.classList.add('active');
             });
-
             // 关闭完整课表
             closeTimetable.addEventListener('click', function() {
                 timetableSection.classList.remove('active');
             });
-
-            // 渲染完整课表
+            // 渲染完整课表 (已更新)
             function renderTimetable() {
                 timetableBody.innerHTML = '';
                 // 生成9节课的行
@@ -981,8 +955,8 @@
                     periodCell.className = 'period';
                     periodCell.textContent = periodNames[periodIndex + 1];
                     row.appendChild(periodCell);
-                    // 周一到周五
-                    for (let day = 1; day <= 5; day++) {
+                    // 周一到周日 (修改循环范围)
+                    for (let day = 1; day <= 7; day++) {
                         const cell = document.createElement('td');
                         cell.className = 'class-cell';
                         if (scheduleData[day] && scheduleData[day][periodIndex]) {
@@ -1003,13 +977,11 @@
                     timetableBody.appendChild(row);
                 }
             }
-
             // 窗口大小改变时重新计算位置
             window.addEventListener('resize', function() {
                 updateCards();
                 updateCardStatus(); // 新增：窗口大小改变时也更新状态
             });
-
             // 精准滑动支持
             let startX = 0;
             let startY = 0;
@@ -1061,7 +1033,6 @@
                 isSwiping = false;
                 scheduleContainer.style.cursor = 'grab';
             });
-
             // 触摸滑动支持
             scheduleContainer.addEventListener('touchstart', function(e) {
                 startX = e.touches[0].clientX;
@@ -1103,7 +1074,6 @@
             scheduleContainer.addEventListener('touchend', function() {
                 isSwiping = false;
             });
-
             // 初始化当前课程
             updateCurrentClass();
             // 初始化卡片
