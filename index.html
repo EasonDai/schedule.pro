@@ -154,11 +154,26 @@
             font-size: 18px;
             font-weight: 500;
             white-space: nowrap;
+            flex-shrink: 0;
         }
         .time {
             font-size: 18px;
             font-weight: 500;
             white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .header-current {
+            background: rgba(0, 113, 227, 0.85);
+            padding: 6px 14px;
+            border-radius: 18px;
+            font-size: 13px;
+            font-weight: 500;
+            white-space: nowrap;
+            max-width: 280px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            flex-shrink: 1;
+            min-width: 0;
         }
         .header-btn {
             width: 36px;
@@ -414,24 +429,7 @@
             background: #555;
         }
 
-        /* ===== 指示器与进度 ===== */
-        .current-indicator {
-            position: absolute;
-            top: 68px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0, 113, 227, 0.85);
-            padding: 7px 16px;
-            border-radius: 20px;
-            font-size: 13px;
-            font-weight: 500;
-            z-index: 20;
-            box-shadow: 0 5px 15px rgba(0, 113, 227, 0.3);
-            white-space: nowrap;
-            max-width: 90%;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
+        /* ===== 进度条 ===== */
         .week-progress {
             position: absolute;
             bottom: 120px;
@@ -511,25 +509,41 @@
             border-color: var(--accent-color);
         }
 
-        /* ===== 主题选择器 ===== */
-        .theme-selector {
+        /* ===== 主题弹出面板 ===== */
+        .theme-popup {
             position: absolute;
-            bottom: 28px;
-            left: 16px;
-            z-index: 20;
+            bottom: 100px;
+            right: 16px;
+            z-index: 25;
             display: flex;
             gap: 8px;
+            padding: 10px 12px;
+            background: var(--button-bg);
+            border: 1px solid var(--button-border);
+            border-radius: 28px;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(10px);
+            transition: all 0.25s cubic-bezier(0.25, 0.1, 0.25, 1);
+        }
+        .theme-popup.show {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateY(0);
         }
         .theme-dot {
-            width: 26px;
-            height: 26px;
+            width: 30px;
+            height: 30px;
             border-radius: 50%;
             border: 2px solid rgba(255, 255, 255, 0.25);
             cursor: pointer;
             transition: all 0.2s ease;
+            flex-shrink: 0;
         }
         .theme-dot:hover {
-            transform: scale(1.15);
+            transform: scale(1.18);
             border-color: #fff;
         }
         .theme-dot.dot-default {
@@ -846,10 +860,20 @@
                 height: 44px;
                 font-size: 20px;
             }
-            .current-indicator {
-                font-size: 12px;
-                padding: 6px 12px;
-                top: 56px;
+            .header-current {
+                font-size: 11px;
+                padding: 5px 10px;
+                max-width: 180px;
+            }
+            .theme-popup {
+                bottom: 90px;
+                right: 10px;
+                gap: 6px;
+                padding: 8px 10px;
+            }
+            .theme-dot {
+                width: 26px;
+                height: 26px;
             }
             .timetable {
                 min-width: 550px;
@@ -886,10 +910,11 @@
                 height: 30px;
                 font-size: 13px;
             }
-            .current-indicator {
-                font-size: 11px;
-                padding: 5px 10px;
-                top: 48px;
+            .header-current {
+                font-size: 10px;
+                padding: 4px 8px;
+                max-width: 100px;
+                border-radius: 12px;
             }
             .schedule-card {
                 border-radius: 18px;
@@ -957,10 +982,11 @@
                 gap: 6px;
                 padding: 0 8px;
             }
-            .theme-selector {
-                bottom: 24px;
-                left: 8px;
-                gap: 6px;
+            .theme-popup {
+                bottom: 84px;
+                right: 8px;
+                gap: 5px;
+                padding: 6px 8px;
             }
             .theme-dot {
                 width: 22px;
@@ -1027,12 +1053,12 @@
         <!-- 顶部栏 -->
         <header>
             <div class="date" id="currentDate">加载中...</div>
+            <span class="header-current" id="headerCurrent">当前无课程</span>
             <div class="time" id="currentTime">00:00:00</div>
         </header>
 
         <!-- 主内容 -->
         <div class="main-content">
-            <div class="current-indicator" id="currentIndicator">当前无课程</div>
 
             <!-- 卡片滑动视图 -->
             <div class="schedule-container" id="scheduleContainer"></div>
@@ -1076,15 +1102,18 @@
             <button class="bottom-icon-btn" id="btnExport" title="导出课表图片">
                 <i class="fas fa-download"></i>
             </button>
+            <button class="bottom-icon-btn" id="btnTheme" title="切换主题">
+                <i class="fas fa-palette"></i>
+            </button>
         </div>
 
-        <!-- 主题颜色选择 -->
-        <div class="theme-selector">
-            <div class="theme-dot dot-default" data-theme="default" title="深灰"></div>
+        <!-- 主题弹出面板 -->
+        <div class="theme-popup" id="themePopup">
             <div class="theme-dot dot-blue" data-theme="dark-blue" title="深蓝"></div>
             <div class="theme-dot dot-purple" data-theme="purple" title="紫色"></div>
             <div class="theme-dot dot-green" data-theme="green" title="绿色"></div>
             <div class="theme-dot dot-orange" data-theme="orange" title="橙色"></div>
+            <div class="theme-dot dot-default" data-theme="default" title="深灰"></div>
         </div>
     </div>
 
@@ -1368,7 +1397,7 @@
             const timetableSection = $('#timetableSection');
             const closeTimetable = $('#closeTimetable');
             const timetableBody = $('#timetableBody');
-            const currentIndicator = $('#currentIndicator');
+            const currentIndicator = $('#headerCurrent');
             const progressBar = $('#progressBar');
             const btnCardView = $('#btnCardView');
             const btnListView = $('#btnListView');
@@ -1391,27 +1420,29 @@
                 const h = window.innerHeight;
                 centerX = w / 2;
                 if (w <= 420) {
-                    baseWidth = 150;
-                    maxWidth = 220;
-                    spacing = -28;
+                    baseWidth = 170;
+                    maxWidth = 250;
+                    spacing = -32;
                 } else if (w <= 768) {
-                    baseWidth = 190;
-                    maxWidth = 290;
-                    spacing = -36;
+                    baseWidth = 220;
+                    maxWidth = 340;
+                    spacing = -40;
                 } else {
-                    baseWidth = 260;
-                    maxWidth = 380;
-                    spacing = -46;
+                    baseWidth = 310;
+                    maxWidth = 480;
+                    spacing = -52;
                 }
-                // 正方形约束：最大尺寸不超过屏幕高度的 55%
-                const maxAllowed = h * 0.55;
-                if (maxWidth > maxAllowed) {
-                    maxWidth = Math.floor(maxAllowed);
-                    baseWidth = Math.floor(maxWidth * 0.68);
+                // 4:3 比例：高度 = 宽度 × 0.75，且不超过屏幕高度的 60%
+                const maxAllowedH = h * 0.60;
+                const idealMaxH = maxWidth * 0.75;
+                if (idealMaxH > maxAllowedH) {
+                    maxHeight = Math.floor(maxAllowedH);
+                    maxWidth = Math.floor(maxHeight / 0.75);
+                    baseWidth = Math.floor(maxWidth * 0.65);
+                } else {
+                    maxHeight = Math.floor(idealMaxH);
                 }
-                // 宽高一致 = 正方形
-                baseHeight = baseWidth;
-                maxHeight = maxWidth;
+                baseHeight = Math.floor(baseWidth * 0.75);
             }
             calcCardSizes();
 
@@ -1948,11 +1979,32 @@
             editModalOverlay.addEventListener('click', e => { if (e.target === editModalOverlay) closeEditModal(); });
 
             // 主题切换
+            const themePopup = $('#themePopup');
+            const btnTheme = $('#btnTheme');
+            let themePopupVisible = false;
+
+            btnTheme.addEventListener('click', (e) => {
+                e.stopPropagation();
+                themePopupVisible = !themePopupVisible;
+                themePopup.classList.toggle('show', themePopupVisible);
+            });
+
             $$('.theme-dot').forEach(dot => {
-                dot.addEventListener('click', function() {
+                dot.addEventListener('click', function(e) {
+                    e.stopPropagation();
                     const theme = this.getAttribute('data-theme');
                     document.body.className = theme === 'default' ? '' : `theme-${theme}`;
+                    themePopupVisible = false;
+                    themePopup.classList.remove('show');
                 });
+            });
+
+            // 点击其他地方关闭主题面板
+            document.addEventListener('click', () => {
+                if (themePopupVisible) {
+                    themePopupVisible = false;
+                    themePopup.classList.remove('show');
+                }
             });
 
             // 键盘快捷操作
