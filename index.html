@@ -2627,30 +2627,69 @@
                 const all = getAllClasses();
                 if (all.length === 0) { visualOffset = 0;
                     updateCards(); return; }
-                startMomentum();
+                const absV = Math.abs(swipeState.velocity);
+                const absOff = Math.abs(visualOffset);
+                // 轻滑：速度慢 且 偏移不到半张 → 翻一页或弹回
+                if (absV < 0.008 && absOff < 1.2) {
+                    gentleSnapToNeighbor();
+                } else {
+                    // 快滑/大幅：惯性多页滚动
+                    startMomentum();
+                }
+            }
+
+            function gentleSnapToNeighbor() {
+                const all = getAllClasses();
+                const total = all.length;
+                let dir = 0;
+                if (visualOffset < -0.15) dir = -1; // 右滑 → 上一张
+                else if (visualOffset > 0.15) dir = 1; // 左滑 → 下一张
+
+                const startOff = visualOffset;
+                const endOff = dir; // dir 就是目标 visualOffset（-1 / 0 / 1）
+                const newIdx = ((currentIndex + dir) % total + total) % total;
+                const startTime = performance.now();
+                const duration = 260;
+
+                function animateGentle() {
+                    const elapsed = performance.now() - startTime;
+                    const t = Math.min(elapsed / duration, 1);
+                    const ease = 1 - Math.pow(1 - t, 3); // ease-out 曲线
+                    visualOffset = startOff + (endOff - startOff) * ease;
+                    updateCards();
+                    if (t < 1) {
+                        requestAnimationFrame(animateGentle);
+                    } else {
+                        currentIndex = newIdx;
+                        visualOffset = 0;
+                        updateCards();
+                        updateCurrentClass();
+                        updateCardStatus();
+                        haptic('snap');
+                    }
+                }
+                requestAnimationFrame(animateGentle);
             }
 
             function startMomentum() {
                 if (swipeState.animating) cancelAnimationFrame(swipeState.animFrame);
                 swipeState.animating = true;
+                // 快滑摩擦力更小，飞得更远
+                const friction = Math.abs(swipeState.velocity) > 0.015 ? 0.96 : 0.92;
 
                 function animate() {
                     if (!swipeState.animating) return;
                     const absV = Math.abs(swipeState.velocity);
-                    // 速度极低且接近整数位 → 吸附结束
-                    if (absV < 0.0002 && Math.abs(visualOffset - Math.round(visualOffset)) < 0.008) {
+                    if (absV < 0.00015 && Math.abs(visualOffset - Math.round(visualOffset)) < 0.006) {
                         snapToNearest();
                         return;
                     }
-                    // 动量位移
                     visualOffset -= swipeState.velocity * 16;
-                    // 摩擦
-                    swipeState.velocity *= 0.94;
-                    // 低速时向最近整数靠拢
-                    if (absV < 0.0006) {
+                    swipeState.velocity *= friction;
+                    if (absV < 0.0005) {
                         const target = Math.round(visualOffset);
-                        visualOffset += (target - visualOffset) * 0.25;
-                        if (Math.abs(target - visualOffset) < 0.004) {
+                        visualOffset += (target - visualOffset) * 0.28;
+                        if (Math.abs(target - visualOffset) < 0.003) {
                             visualOffset = target;
                             snapToNearest();
                             return;
