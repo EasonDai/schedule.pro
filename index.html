@@ -5,9 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="theme-color" content="#0f172a">
-    <meta name="apple-mobile-web-app-title" content="课表">
-    <link rel="manifest" href="manifest.json">
     <title>课表 Pro</title>
     <link rel="icon" href="favicon.ico" type="image/x-icon">
     <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -496,6 +493,9 @@
             color: var(--empty-cell-color);
             font-size: 18px;
             padding: 40px 20px;
+        }
+        .list-empty.hidden {
+            display: none;
         }
         .empty-icon {
             font-size: 56px;
@@ -1290,6 +1290,145 @@
                 font-size: 14px;
                 padding: 10px 12px;
             }
+
+            /* watchOS 极简模式：隐藏非核心元素 */
+            .time,
+            .week-switcher,
+            #btnSearch,
+            .current-indicator,
+            .bottom-buttons,
+            .week-progress,
+            .theme-wrapper,
+            #btnExport,
+            .header-btn {
+                display: none !important;
+            }
+            header {
+                justify-content: center;
+                padding: 8px 12px;
+            }
+            .date {
+                font-size: 14px;
+            }
+
+            /* watch 更多按钮 */
+            .watch-more-btn {
+                display: flex !important;
+                position: absolute;
+                bottom: 16px;
+                right: 14px;
+                width: 44px;
+                height: 44px;
+                border-radius: 50%;
+                background: var(--glass-bg-strong);
+                backdrop-filter: blur(18px) saturate(180%);
+                -webkit-backdrop-filter: blur(18px) saturate(180%);
+                border: 1px solid var(--glass-border-strong);
+                color: var(--text-color);
+                font-size: 20px;
+                cursor: pointer;
+                align-items: center;
+                justify-content: center;
+                z-index: 30;
+                box-shadow: var(--glass-shadow-md);
+                transition: transform 0.15s ease;
+            }
+            .watch-more-btn:active {
+                transform: scale(0.92);
+            }
+
+            /* watch 菜单遮罩 */
+            .watch-menu-overlay {
+                display: none;
+                position: fixed;
+                inset: 0;
+                background: rgba(0, 0, 0, 0.5);
+                backdrop-filter: blur(6px);
+                -webkit-backdrop-filter: blur(6px);
+                z-index: 150;
+                align-items: flex-end;
+                justify-content: center;
+            }
+            .watch-menu-overlay.show {
+                display: flex;
+            }
+            .watch-menu {
+                width: 100%;
+                background: var(--modal-bg);
+                backdrop-filter: blur(30px) saturate(200%);
+                -webkit-backdrop-filter: blur(30px) saturate(200%);
+                border-radius: 20px 20px 0 0;
+                padding: 16px 14px 24px;
+                display: flex;
+                flex-wrap: wrap;
+                gap: 8px;
+                justify-content: center;
+                border-top: 1px solid var(--glass-border-strong);
+                box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.5);
+                animation: slideUp 0.3s ease;
+            }
+            @keyframes slideUp {
+                from { transform: translateY(100%); }
+                to { transform: translateY(0); }
+            }
+            .watch-menu-item {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 4px;
+                width: 68px;
+                padding: 10px 4px;
+                border-radius: 14px;
+                background: var(--glass-bg);
+                border: 1px solid var(--glass-border);
+                color: var(--text-color);
+                font-size: 10px;
+                cursor: pointer;
+                transition: all 0.15s ease;
+                text-align: center;
+                -webkit-appearance: none;
+                font-family: inherit;
+            }
+            .watch-menu-item i {
+                font-size: 18px;
+            }
+            .watch-menu-item:active {
+                background: var(--glass-bg-strong);
+                transform: scale(0.95);
+            }
+            .watch-menu-divider {
+                width: 100%;
+                height: 1px;
+                background: var(--glass-border);
+                margin: 2px 0;
+            }
+            .watch-menu-close {
+                width: 100%;
+                padding: 13px;
+                border-radius: 14px;
+                background: var(--glass-bg);
+                border: 1px solid var(--glass-border);
+                color: var(--class-details-color);
+                font-size: 15px;
+                cursor: pointer;
+                margin-top: 4px;
+                font-family: inherit;
+            }
+        }
+
+        /* 默认隐藏 watch 按钮（桌面/平板） */
+        .watch-more-btn {
+            display: none;
+            position: absolute;
+            bottom: 16px;
+            right: 14px;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            z-index: 30;
+        }
+        .watch-menu-overlay {
+            display: none;
         }
 
         /* ===== 导出预览高亮 ===== */
@@ -1388,6 +1527,29 @@
                     <div class="theme-dot dot-orange" data-theme="orange" title="橙色"></div>
                     <div class="theme-dot dot-default" data-theme="default" title="深灰"></div>
                 </div>
+            </div>
+        </div>
+
+        <!-- watchOS 更多按钮 -->
+        <button class="watch-more-btn" id="watchMoreBtn" title="功能菜单">
+            <i class="fas fa-ellipsis-h"></i>
+        </button>
+
+        <!-- watchOS 功能菜单 -->
+        <div class="watch-menu-overlay" id="watchMenuOverlay">
+            <div class="watch-menu">
+                <button class="watch-menu-item" data-action="list"><i class="fas fa-list"></i> 列表视图</button>
+                <button class="watch-menu-item" data-action="timetable"><i class="fas fa-table"></i> 完整课表</button>
+                <button class="watch-menu-item" data-action="search"><i class="fas fa-search"></i> 搜索课程</button>
+                <button class="watch-menu-item" data-action="add"><i class="fas fa-plus"></i> 添加课程</button>
+                <button class="watch-menu-item" data-action="today"><i class="fas fa-sync-alt"></i> 回到当前</button>
+                <button class="watch-menu-item" data-action="export"><i class="fas fa-download"></i> 导出课表</button>
+                <button class="watch-menu-item" data-action="theme"><i class="fas fa-palette"></i> 切换主题</button>
+                <button class="watch-menu-item" data-action="notify"><i class="fas fa-bell"></i> 课程提醒</button>
+                <div class="watch-menu-divider"></div>
+                <button class="watch-menu-item" data-action="prevWeek"><i class="fas fa-chevron-left"></i> 上一周</button>
+                <button class="watch-menu-item" data-action="nextWeek"><i class="fas fa-chevron-right"></i> 下一周</button>
+                <button class="watch-menu-close" id="watchMenuClose">取消</button>
             </div>
         </div>
     </div>
@@ -1502,12 +1664,6 @@
             const dayNames = { 1: '周一', 2: '周二', 3: '周三', 4: '周四', 5: '周五', 6: '周六', 7: '周日' };
 
             // ===== 多周数据管理 =====
-            let allData = loadAllData(); // { weeks: {1: {...}, 2: {...}, ...}, currentWeek: 1, periodCount: 9 }
-            let currentWeek = allData.currentWeek || 1;
-            let scheduleData = allData.weeks[currentWeek] || ensureWeekData(currentWeek);
-            let periodCount = allData.periodCount || 9;
-            let totalWeeks = Object.keys(allData.weeks).length;
-
             function ensureWeekData(w) {
                 if (!allData.weeks[w]) allData.weeks[w] = { 1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: [] };
                 return allData.weeks[w];
@@ -1599,7 +1755,7 @@
                 return `第${p}节`;
             }
 
-            // 默认课表数据
+            // 默认课表数据（必须在 loadAllData 之前定义）
             const DEFAULT_SCHEDULE = {
                 1: [
                     { id: 1, name: '数学课', teacher: '李老师', room: '302', startTime: '08:00',
@@ -1704,6 +1860,13 @@
                 6: [], // 周六 - 无课程
                 7: [], // 周日 - 无课程
             };
+
+            // ===== 数据初始化（必须在 DEFAULT_SCHEDULE 之后） =====
+            let allData = loadAllData();
+            let currentWeek = allData.currentWeek || 1;
+            let scheduleData = allData.weeks[currentWeek] || ensureWeekData(currentWeek);
+            let periodCount = allData.periodCount || 9;
+            let totalWeeks = Object.keys(allData.weeks).length;
 
             // ==================== 数据持久化 ====================
             let nextId = getMaxId() + 1;
@@ -2142,7 +2305,6 @@
                 saveAllData();
                 closeEditModal();
                 refreshAll();
-                haptic('medium');
                 showToast(editId ? '✅ 课程已更新' : '✅ 课程已添加');
             }
 
@@ -2202,7 +2364,6 @@
                 refreshAll();
                 // 启用撤销
                 clearUndo();
-                haptic('double');
                 undoData = { course: deletedCourse, day: deletedDay, periodIdx: deletedIdx };
                 undoTimer = setTimeout(clearUndo, 3000);
                 showUndoToast(deletedCourse ? deletedCourse.name : '课程');
@@ -2558,13 +2719,14 @@
             };
             let visualOffset = 0;
 
-            // 重写卡片位置计算，加入 visualOffset 偏移
+            // 重写卡片位置计算，闭环循环 + visualOffset 偏移
             calculateCardPosition = function(index, total) {
-                let adj = index;
-                if (adj < 0) adj = total + (adj % total);
-                else if (adj >= total) adj = adj % total;
-                const effectiveDist = adj - currentIndex - visualOffset;
-                const dist = Math.abs(effectiveDist);
+                // 计算最短环绕距离（前后各取一半，形成闭环）
+                let rawDist = index - currentIndex - visualOffset;
+                const half = total / 2;
+                if (rawDist > half) rawDist -= total;
+                if (rawDist < -half) rawDist += total;
+                const dist = Math.abs(rawDist);
                 const normDist = Math.min(dist / 3, 1);
                 const scale = 1 - normDist * 0.3;
                 const w = baseWidth + (maxWidth - baseWidth) * (1 - normDist);
@@ -2574,7 +2736,7 @@
                 if (dist < 0.5) bg = 'var(--glass-bg-strong)';
                 else if (dist < 1.5) bg = 'var(--glass-bg)';
                 else bg = 'var(--glass-bg-surface)';
-                const xPos = centerX + effectiveDist * (baseWidth + spacing);
+                const xPos = centerX + rawDist * (baseWidth + spacing);
                 return { x: xPos, y: window.innerHeight / 2, width: w, height: h, scale, zIndex: z, background: bg,
                     isCenter: dist < 0.5 };
             };
@@ -2665,7 +2827,6 @@
                         updateCards();
                         updateCurrentClass();
                         updateCardStatus();
-                        haptic('snap');
                     }
                 }
                 requestAnimationFrame(animateGentle);
@@ -2713,11 +2874,13 @@
                 if (total === 0) { visualOffset = 0;
                     updateCards();
                     updateCurrentClass(); return; }
-                const rounded = Math.round(visualOffset);
-                // 右滑 visualOffset<0 → 卡片右移 → 左边卡片进中心 → currentIndex 减小
-                let newIdx = currentIndex + rounded;
-                // 循环修正
-                newIdx = ((newIdx % total) + total) % total;
+                // 取最短路径：超过半圈走另一边更近
+                let voff = visualOffset;
+                const half = total / 2;
+                if (voff > half) voff -= total;
+                if (voff < -half) voff += total;
+                const rounded = Math.round(voff);
+                let newIdx = ((currentIndex + rounded) % total + total) % total;
                 currentIndex = newIdx;
                 visualOffset = 0;
                 updateCards();
@@ -2762,6 +2925,64 @@
             $('#btnWeekPrev').addEventListener('click', () => { if (currentWeek > 1) switchWeek(currentWeek - 1); });
             $('#btnWeekNext').addEventListener('click', () => switchWeek(currentWeek + 1));
             $('#btnSearch').addEventListener('click', toggleSearch);
+
+            // ===== watchOS 更多菜单 =====
+            const watchMoreBtn = $('#watchMoreBtn');
+            const watchMenuOverlay = $('#watchMenuOverlay');
+
+            watchMoreBtn.addEventListener('click', () => {
+                watchMenuOverlay.classList.add('show');
+            });
+            watchMenuOverlay.addEventListener('click', e => {
+                if (e.target === watchMenuOverlay) watchMenuOverlay.classList.remove('show');
+            });
+            $('#watchMenuClose').addEventListener('click', () => {
+                watchMenuOverlay.classList.remove('show');
+            });
+            // 菜单项点击
+            watchMenuOverlay.querySelectorAll('.watch-menu-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    const action = item.getAttribute('data-action');
+                    watchMenuOverlay.classList.remove('show');
+                    switch (action) {
+                        case 'list':
+                            switchView('list');
+                            break;
+                        case 'timetable':
+                            renderTimetable();
+                            timetableSection.classList.add('active');
+                            break;
+                        case 'search':
+                            toggleSearch();
+                            break;
+                        case 'add':
+                            openEditModal(null);
+                            break;
+                        case 'today':
+                            currentIndex = getCurrentClassIndex();
+                            updateCards();
+                            updateCurrentClass();
+                            updateCardStatus();
+                            break;
+                        case 'export':
+                            exportAsImage();
+                            break;
+                        case 'theme':
+                            btnTheme.click();
+                            break;
+                        case 'notify':
+                            requestNotification();
+                            break;
+                        case 'prevWeek':
+                            if (currentWeek > 1) switchWeek(currentWeek - 1);
+                            break;
+                        case 'nextWeek':
+                            switchWeek(currentWeek + 1);
+                            break;
+                    }
+                });
+            });
+
             todayBtn.addEventListener('click', () => {
                 currentIndex = getCurrentClassIndex();
                 if (currentView === 'card') updateCards();
@@ -2872,88 +3093,9 @@
                 }
             }
 
-            // ==================== 触觉反馈 ====================
-            function haptic(style = 'light') {
-                if (!navigator.vibrate) return;
-                switch (style) {
-                    case 'light':
-                        navigator.vibrate(8);
-                        break;
-                    case 'medium':
-                        navigator.vibrate(15);
-                        break;
-                    case 'snap':
-                        navigator.vibrate([5, 30, 10]);
-                        break;
-                    case 'double':
-                        navigator.vibrate([10, 50, 10]);
-                        break;
-                    default:
-                        navigator.vibrate(10);
-                }
-            }
-
-            // 卡片吸附瞬间震感
-            const _origSnap = snapToNearest;
-            snapToNearest = function() { _origSnap();
-                haptic('snap'); };
-
-            // 按钮触觉（额外绑定，不覆盖原有事件）
-            todayBtn.addEventListener('click', () => haptic('light'));
-            btnAddCourse.addEventListener('click', () => haptic('light'));
-            btnCardView.addEventListener('click', () => haptic('light'));
-            btnListView.addEventListener('click', () => haptic('light'));
-            editBtn.addEventListener('click', () => haptic('light'));
-            btnExport.addEventListener('click', () => haptic('light'));
-
-            // ==================== watchOS Digital Crown ====================
-            let crownAccumulator = 0;
-            const CROWN_THRESHOLD = 50;
-            let crownTimer = null;
-
-            function isWatchOS() {
-                return window.innerWidth <= 420;
-            }
-
-            document.addEventListener('wheel', e => {
-                if (!isWatchOS()) return; // 仅手表尺寸启用
-                if (currentView !== 'card') return;
-                if (editModalOverlay.classList.contains('active')) return;
-                if (timetableSection.classList.contains('active')) return;
-                if (Math.abs(e.deltaY) > Math.abs(e.deltaX || 0)) {
-                    e.preventDefault();
-                    crownAccumulator += e.deltaY;
-                    if (crownTimer) clearTimeout(crownTimer);
-                    crownTimer = setTimeout(() => { crownAccumulator = 0; }, 300);
-                    if (Math.abs(crownAccumulator) > CROWN_THRESHOLD) {
-                        const dir = crownAccumulator > 0 ? 1 : -1;
-                        const all = getAllClasses();
-                        if (all.length > 0) {
-                            if (swipeState.animating) stopMomentum();
-                            visualOffset = 0;
-                            currentIndex = ((currentIndex + dir) % all.length + all.length) % all.length;
-                            updateCards();
-                            updateCurrentClass();
-                            haptic('light');
-                        }
-                        crownAccumulator = 0;
-                    }
-                }
-            }, { passive: false });
-
-            // ==================== PWA Service Worker ====================
-            if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.register('sw.js').then(() => {
-                    console.log('📦 Service Worker 已注册 — 支持离线使用');
-                }).catch(() => {
-                    console.log('📦 Service Worker 注册失败（可能因为本地文件打开）');
-                });
-            }
-
             init();
             console.log('📋 课表 Pro 已就绪');
             console.log('  📅 多周课表  |  🔍 搜索 (⌘K)  |  🔔 课程提醒');
-            console.log('  📳 触觉反馈  |  👑 Digital Crown  |  📦 离线 PWA');
             console.log('  ⌨️  ← → 切换课程  |  C/L 切换视图  |  T 打开课表  |  N 添加课程');
         })();
     </script>
