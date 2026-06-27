@@ -1155,7 +1155,7 @@
         }
 
         /* ===== 响应式 - watchOS / 超小屏 ===== */
-        @media (max-width: 420px) {
+        @media (max-width: 320px) {
             header {
                 padding: 8px 10px;
                 gap: 4px;
@@ -2942,6 +2942,7 @@
             // 菜单项点击
             watchMenuOverlay.querySelectorAll('.watch-menu-item').forEach(item => {
                 item.addEventListener('click', () => {
+                    haptic('light');
                     const action = item.getAttribute('data-action');
                     watchMenuOverlay.classList.remove('show');
                     switch (action) {
@@ -3093,9 +3094,46 @@
                 }
             }
 
+            // ==================== 触觉反馈 ====================
+            function haptic(style = 'light') {
+                if (!navigator.vibrate) return;
+                if (style === 'snap') navigator.vibrate(10);
+                else if (style === 'medium') navigator.vibrate(15);
+                else navigator.vibrate(8);
+            }
+
+            // 卡片吸附时震一下
+            const _snap = snapToNearest;
+            snapToNearest = function() { _snap();
+                haptic('snap'); };
+            const _gentle = gentleSnapToNeighbor;
+            gentleSnapToNeighbor = function() { _gentle();
+                haptic('snap'); };
+
+            // ==================== watchOS Digital Crown ====================
+            document.addEventListener('wheel', e => {
+                if (window.innerWidth > 320) return;
+                if (currentView !== 'card') return;
+                if (editModalOverlay.classList.contains('active')) return;
+                if (timetableSection.classList.contains('active')) return;
+                if (watchMenuOverlay.classList.contains('show')) return;
+                if (Math.abs(e.deltaY) < 30) return;
+                e.preventDefault();
+                const dir = e.deltaY > 0 ? 1 : -1;
+                const all = getAllClasses();
+                if (all.length === 0) return;
+                if (swipeState.animating) stopMomentum();
+                visualOffset = 0;
+                currentIndex = ((currentIndex + dir) % all.length + all.length) % all.length;
+                updateCards();
+                updateCurrentClass();
+                haptic('light');
+            }, { passive: false });
+
             init();
             console.log('📋 课表 Pro 已就绪');
             console.log('  📅 多周课表  |  🔍 搜索 (⌘K)  |  🔔 课程提醒');
+            console.log('  📳 触觉反馈  |  👑 表冠控制');
             console.log('  ⌨️  ← → 切换课程  |  C/L 切换视图  |  T 打开课表  |  N 添加课程');
         })();
     </script>
