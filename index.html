@@ -1391,20 +1391,27 @@
                 const h = window.innerHeight;
                 centerX = w / 2;
                 if (w <= 420) {
-                    baseWidth = 170;
-                    maxWidth = 230;
-                    spacing = -35;
+                    baseWidth = 150;
+                    maxWidth = 220;
+                    spacing = -28;
                 } else if (w <= 768) {
-                    baseWidth = 210;
+                    baseWidth = 190;
                     maxWidth = 290;
-                    spacing = -42;
+                    spacing = -36;
                 } else {
-                    baseWidth = 280;
-                    maxWidth = 400;
-                    spacing = -50;
+                    baseWidth = 260;
+                    maxWidth = 380;
+                    spacing = -46;
                 }
-                baseHeight = Math.min(180, h * 0.33);
-                maxHeight = Math.min(h * 0.62, 420);
+                // 正方形约束：最大尺寸不超过屏幕高度的 55%
+                const maxAllowed = h * 0.55;
+                if (maxWidth > maxAllowed) {
+                    maxWidth = Math.floor(maxAllowed);
+                    baseWidth = Math.floor(maxWidth * 0.68);
+                }
+                // 宽高一致 = 正方形
+                baseHeight = baseWidth;
+                maxHeight = maxWidth;
             }
             calcCardSizes();
 
