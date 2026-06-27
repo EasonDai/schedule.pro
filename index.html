@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#0f172a">
+    <meta name="apple-mobile-web-app-title" content="课表">
+    <link rel="manifest" href="manifest.json">
     <title>课表 Pro</title>
     <link rel="icon" href="favicon.ico" type="image/x-icon">
     <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -494,11 +497,49 @@
             font-size: 18px;
             padding: 40px 20px;
         }
-        .list-empty i {
-            font-size: 48px;
+        .empty-icon {
+            font-size: 56px;
             display: block;
             margin-bottom: 12px;
-            opacity: 0.4;
+        }
+        .empty-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text-color);
+            margin-bottom: 8px;
+        }
+        .empty-desc {
+            font-size: 15px;
+            color: var(--class-details-color);
+            line-height: 1.6;
+        }
+        .empty-desc strong {
+            color: var(--text-color);
+        }
+        .empty-add-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 22px;
+            padding: 12px 28px;
+            border-radius: 24px;
+            background: var(--accent-color);
+            border: none;
+            color: #fff;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .empty-add-btn:hover {
+            background: var(--accent-color-dark);
+            transform: scale(1.04);
+        }
+        .empty-state {
+            text-align: center;
+            color: var(--empty-cell-color);
+            width: 100%;
+            padding-top: 35vh;
         }
         .list-course-item {
             display: flex;
@@ -1038,6 +1079,27 @@
         .toast.show {
             transform: translateX(-50%) translateY(0);
         }
+        .undo-toast {
+            padding: 10px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            pointer-events: auto;
+        }
+        .undo-toast .undo-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: #fff;
+            padding: 5px 14px;
+            border-radius: 14px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.15s ease;
+        }
+        .undo-toast .undo-btn:hover {
+            background: rgba(255, 255, 255, 0.35);
+        }
 
         /* ===== 响应式 - 平板/手机 ===== */
         @media (max-width: 768px) {
@@ -1282,8 +1344,9 @@
                     <div class="list-date" id="listViewDate"></div>
                 </div>
                 <div class="list-empty hidden" id="listEmpty">
-                    <i class="fas fa-coffee"></i>
-                    今天没有课程，好好休息~
+                    <div class="empty-icon">☕️</div>
+                    <div class="empty-title">今天没有课程</div>
+                    <div class="empty-desc">好好休息，或者去其他周看看~</div>
                 </div>
                 <div id="listViewCourses"></div>
             </div>
@@ -1427,6 +1490,10 @@
 
     <!-- Toast -->
     <div class="toast" id="toast"></div>
+    <div class="toast undo-toast" id="undoToast">
+        <span id="undoToastMsg">已删除</span>
+        <button class="undo-btn" id="btnUndo">撤销</button>
+    </div>
 
     <script>
         (function() {
@@ -1708,21 +1775,29 @@
                 const w = window.innerWidth;
                 const h = window.innerHeight;
                 centerX = w / 2;
-                if (w <= 420) {
-                    baseWidth = 150;
-                    maxWidth = 190;
-                    spacing = -30;
-                } else if (w <= 768) {
-                    baseWidth = 200;
-                    maxWidth = 260;
+                if (w <= 380) {
+                    // Apple Watch
+                    baseWidth = 170;
+                    maxWidth = 230;
+                    spacing = -32;
+                } else if (w <= 500) {
+                    // iPhone
+                    baseWidth = 210;
+                    maxWidth = 280;
                     spacing = -38;
+                } else if (w <= 768) {
+                    // iPad / 小平板
+                    baseWidth = 240;
+                    maxWidth = 310;
+                    spacing = -42;
                 } else {
+                    // 桌面
                     baseWidth = 270;
                     maxWidth = 360;
                     spacing = -48;
                 }
-                // 3:4 竖长方形：高度 = 宽度 × 4/3，且不超过屏幕高度的 60%
-                const maxAllowedH = h * 0.60;
+                // 3:4 竖长方形：高度 = 宽度 × 4/3，不超过屏幕高度的 68%
+                const maxAllowedH = h * 0.68;
                 const idealMaxH = Math.floor(maxWidth * (4 / 3));
                 if (idealMaxH > maxAllowedH) {
                     maxHeight = Math.floor(maxAllowedH);
@@ -1768,8 +1843,13 @@
                 scheduleContainer.innerHTML = '';
                 const all = getAllClasses();
                 if (all.length === 0) {
-                    scheduleContainer.innerHTML =
-                        '<div style="text-align:center;color:#888;width:100%;padding-top:40vh;"><i class="fas fa-calendar-plus" style="font-size:48px;display:block;margin-bottom:12px;"></i>还没有课程，点击 + 添加</div>';
+                    scheduleContainer.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-icon">📝</div>
+                            <div class="empty-title">还没有课程</div>
+                            <div class="empty-desc">点击下方 <strong>+</strong> 按钮<br>添加你的第一门课吧</div>
+                            <button class="empty-add-btn" id="emptyAddBtn"><i class="fas fa-plus"></i> 添加课程</button>
+                        </div>`;
                     return;
                 }
                 all.forEach((c, i) => {
@@ -2062,6 +2142,7 @@
                 saveAllData();
                 closeEditModal();
                 refreshAll();
+                haptic('medium');
                 showToast(editId ? '✅ 课程已更新' : '✅ 课程已添加');
             }
 
@@ -2121,6 +2202,7 @@
                 refreshAll();
                 // 启用撤销
                 clearUndo();
+                haptic('double');
                 undoData = { course: deletedCourse, day: deletedDay, periodIdx: deletedIdx };
                 undoTimer = setTimeout(clearUndo, 3000);
                 showUndoToast(deletedCourse ? deletedCourse.name : '课程');
@@ -2390,6 +2472,7 @@
 
             // ==================== Toast ====================
             let toastTimer;
+            const undoToast = $('#undoToast');
 
             function showToast(msg) {
                 clearTimeout(toastTimer);
@@ -2397,6 +2480,21 @@
                 toast.classList.add('show');
                 toastTimer = setTimeout(() => toast.classList.remove('show'), 2200);
             }
+
+            let undoTimer2 = null;
+
+            function showUndoToast(courseName) {
+                $('#undoToastMsg').textContent = `已删除「${courseName}」`;
+                undoToast.classList.add('show');
+                if (undoTimer2) clearTimeout(undoTimer2);
+                undoTimer2 = setTimeout(() => undoToast.classList.remove('show'), 3000);
+            }
+
+            $('#btnUndo').addEventListener('click', () => {
+                if (undoTimer2) clearTimeout(undoTimer2);
+                undoDelete();
+                undoToast.classList.remove('show');
+            });
 
             // ==================== 全局刷新 ====================
             function updateWeekUI() {
@@ -2449,27 +2547,23 @@
             let swipeState = {
                 active: false,
                 startX: 0,
+                startY: 0,
                 lastX: 0,
+                lastY: 0,
                 lastTime: 0,
-                velocity: 0, // 卡片/毫秒
+                velocity: 0,
                 animating: false,
                 animFrame: null,
                 preventedScroll: false,
             };
-            let visualOffset = 0; // 浮点偏移，0 = 吸附在 currentIndex
+            let visualOffset = 0;
 
-            // 修改卡片位置计算，加入 visualOffset
-            const origCalcCardPos = calculateCardPosition;
-            // 直接在 calculateCardPosition 里加入偏移——重写该函数
-            const _calcCardPosBase = calculateCardPosition;
+            // 重写卡片位置计算，加入 visualOffset 偏移
             calculateCardPosition = function(index, total) {
-                // 临时替换 currentIndex 为 currentIndex + visualOffset
-                const savedIdx = currentIndex;
-                // 通过偏移量影响 distance 计算
                 let adj = index;
                 if (adj < 0) adj = total + (adj % total);
                 else if (adj >= total) adj = adj % total;
-                const effectiveDist = adj - savedIdx - visualOffset;
+                const effectiveDist = adj - currentIndex - visualOffset;
                 const dist = Math.abs(effectiveDist);
                 const normDist = Math.min(dist / 3, 1);
                 const scale = 1 - normDist * 0.3;
@@ -2490,7 +2584,9 @@
                 if (swipeState.animating) stopMomentum();
                 swipeState.active = true;
                 swipeState.startX = x;
+                swipeState.startY = y;
                 swipeState.lastX = x;
+                swipeState.lastY = y;
                 swipeState.lastTime = performance.now();
                 swipeState.velocity = 0;
                 swipeState.preventedScroll = false;
@@ -2501,18 +2597,22 @@
             function handleSwipeMove(x, y, preventDefaultFn) {
                 if (!swipeState.active) return;
                 const dx = x - swipeState.startX;
-                const dy = y - (swipeState.startY || y);
-                swipeState.startY = y;
-                if (Math.abs(dx) > Math.abs(dy) && preventDefaultFn && !swipeState.preventedScroll) {
-                    preventDefaultFn();
-                    swipeState.preventedScroll = true;
+                const dy = y - swipeState.startY;
+                // 超过 8px 阈值才开始判定方向，避免误触
+                if (Math.abs(dx) > 8 || Math.abs(dy) > 8) {
+                    if (Math.abs(dx) > Math.abs(dy) && preventDefaultFn && !swipeState.preventedScroll) {
+                        preventDefaultFn();
+                        swipeState.preventedScroll = true;
+                    }
                 }
-                if (Math.abs(dx) > Math.abs(dy)) {
+                if (!swipeState.preventedScroll && Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
+                if (Math.abs(dx) > Math.abs(dy) || swipeState.preventedScroll) {
                     const cardW = baseWidth + spacing;
                     const now = performance.now();
                     const dt = Math.max(now - swipeState.lastTime, 1);
-                    const instantV = (x - swipeState.lastX) / cardW / dt; // 卡片/毫秒
-                    swipeState.velocity = swipeState.velocity * 0.6 + instantV * 0.4; // 平滑
+                    // 瞬时速度（卡片数/毫秒），手指右滑 dx>0，卡片应向右偏移
+                    const instantV = (x - swipeState.lastX) / cardW / dt;
+                    swipeState.velocity = swipeState.velocity * 0.5 + instantV * 0.5;
                     swipeState.lastX = x;
                     swipeState.lastTime = now;
                     visualOffset = -dx / cardW;
@@ -2527,37 +2627,30 @@
                 const all = getAllClasses();
                 if (all.length === 0) { visualOffset = 0;
                     updateCards(); return; }
-                // 启动动量动画
                 startMomentum();
             }
 
             function startMomentum() {
                 if (swipeState.animating) cancelAnimationFrame(swipeState.animFrame);
                 swipeState.animating = true;
-                const all = getAllClasses();
-                const total = all.length;
 
                 function animate() {
                     if (!swipeState.animating) return;
-                    // 应用速度
                     const absV = Math.abs(swipeState.velocity);
-                    if (absV < 0.0003 && Math.abs(visualOffset - Math.round(visualOffset)) < 0.01) {
-                        // 停止：吸附到最近整数
+                    // 速度极低且接近整数位 → 吸附结束
+                    if (absV < 0.0002 && Math.abs(visualOffset - Math.round(visualOffset)) < 0.008) {
                         snapToNearest();
                         return;
                     }
-                    visualOffset += swipeState.velocity * 16; // 假设 60fps
-                    // 摩擦减速
+                    // 动量位移
+                    visualOffset -= swipeState.velocity * 16;
+                    // 摩擦
                     swipeState.velocity *= 0.94;
-                    // 循环处理
-                    if (visualOffset < -total / 2) visualOffset += total;
-                    if (visualOffset > total / 2) visualOffset -= total;
-
-                    // 当速度很小时，向最近整数吸附
-                    if (absV < 0.0008) {
+                    // 低速时向最近整数靠拢
+                    if (absV < 0.0006) {
                         const target = Math.round(visualOffset);
-                        visualOffset += (target - visualOffset) * 0.3;
-                        if (Math.abs(target - visualOffset) < 0.005) {
+                        visualOffset += (target - visualOffset) * 0.25;
+                        if (Math.abs(target - visualOffset) < 0.004) {
                             visualOffset = target;
                             snapToNearest();
                             return;
@@ -2582,10 +2675,10 @@
                     updateCards();
                     updateCurrentClass(); return; }
                 const rounded = Math.round(visualOffset);
-                // 调整 currentIndex
-                let newIdx = currentIndex - rounded;
-                if (newIdx < 0) newIdx = total + (newIdx % total);
-                else if (newIdx >= total) newIdx = newIdx % total;
+                // 右滑 visualOffset<0 → 卡片右移 → 左边卡片进中心 → currentIndex 减小
+                let newIdx = currentIndex + rounded;
+                // 循环修正
+                newIdx = ((newIdx % total) + total) % total;
                 currentIndex = newIdx;
                 visualOffset = 0;
                 updateCards();
@@ -2613,6 +2706,10 @@
                     const all = getAllClasses();
                     const course = all.find(c => c.id === id);
                     if (course) openEditModal(course);
+                }
+                if (e.target.closest('#emptyAddBtn')) {
+                    e.stopPropagation();
+                    openEditModal(null);
                 }
             });
 
@@ -2736,13 +2833,89 @@
                 }
             }
 
+            // ==================== 触觉反馈 ====================
+            function haptic(style = 'light') {
+                if (!navigator.vibrate) return;
+                switch (style) {
+                    case 'light':
+                        navigator.vibrate(8);
+                        break;
+                    case 'medium':
+                        navigator.vibrate(15);
+                        break;
+                    case 'snap':
+                        navigator.vibrate([5, 30, 10]);
+                        break;
+                    case 'double':
+                        navigator.vibrate([10, 50, 10]);
+                        break;
+                    default:
+                        navigator.vibrate(10);
+                }
+            }
+
+            // 卡片吸附瞬间震感
+            const _origSnap = snapToNearest;
+            snapToNearest = function() { _origSnap();
+                haptic('snap'); };
+
+            // 按钮触觉（额外绑定，不覆盖原有事件）
+            todayBtn.addEventListener('click', () => haptic('light'));
+            btnAddCourse.addEventListener('click', () => haptic('light'));
+            btnCardView.addEventListener('click', () => haptic('light'));
+            btnListView.addEventListener('click', () => haptic('light'));
+            editBtn.addEventListener('click', () => haptic('light'));
+            btnExport.addEventListener('click', () => haptic('light'));
+
+            // ==================== watchOS Digital Crown ====================
+            let crownAccumulator = 0;
+            const CROWN_THRESHOLD = 50;
+            let crownTimer = null;
+
+            function isWatchOS() {
+                return window.innerWidth <= 420;
+            }
+
+            document.addEventListener('wheel', e => {
+                if (!isWatchOS()) return; // 仅手表尺寸启用
+                if (currentView !== 'card') return;
+                if (editModalOverlay.classList.contains('active')) return;
+                if (timetableSection.classList.contains('active')) return;
+                if (Math.abs(e.deltaY) > Math.abs(e.deltaX || 0)) {
+                    e.preventDefault();
+                    crownAccumulator += e.deltaY;
+                    if (crownTimer) clearTimeout(crownTimer);
+                    crownTimer = setTimeout(() => { crownAccumulator = 0; }, 300);
+                    if (Math.abs(crownAccumulator) > CROWN_THRESHOLD) {
+                        const dir = crownAccumulator > 0 ? 1 : -1;
+                        const all = getAllClasses();
+                        if (all.length > 0) {
+                            if (swipeState.animating) stopMomentum();
+                            visualOffset = 0;
+                            currentIndex = ((currentIndex + dir) % all.length + all.length) % all.length;
+                            updateCards();
+                            updateCurrentClass();
+                            haptic('light');
+                        }
+                        crownAccumulator = 0;
+                    }
+                }
+            }, { passive: false });
+
+            // ==================== PWA Service Worker ====================
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('sw.js').then(() => {
+                    console.log('📦 Service Worker 已注册 — 支持离线使用');
+                }).catch(() => {
+                    console.log('📦 Service Worker 注册失败（可能因为本地文件打开）');
+                });
+            }
+
             init();
             console.log('📋 课表 Pro 已就绪');
             console.log('  📅 多周课表  |  🔍 搜索 (⌘K)  |  🔔 课程提醒');
+            console.log('  📳 触觉反馈  |  👑 Digital Crown  |  📦 离线 PWA');
             console.log('  ⌨️  ← → 切换课程  |  C/L 切换视图  |  T 打开课表  |  N 添加课程');
-            console.log('  🖼️ 卡片 / 列表 双视图');
-            console.log('  ⌨️  键盘快捷键：← → 切换课程，C/L 切换视图，T 打开课表，N 添加课程');
-            console.log('  📱 双击日期可恢复默认课表');
         })();
     </script>
 </body>
