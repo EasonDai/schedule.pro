@@ -661,7 +661,8 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            gap: 12px;
+            flex-wrap: wrap;
+            gap: 10px;
             z-index: 10;
             padding: 0 16px;
         }
@@ -677,6 +678,7 @@
             display: flex;
             align-items: center;
             gap: 8px;
+            flex-shrink: 0;
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
             transition: all 0.2s ease;
@@ -689,6 +691,7 @@
         .bottom-icon-btn {
             width: 50px;
             height: 50px;
+            min-width: 50px;
             border-radius: 50%;
             background: var(--button-bg);
             border: 1px solid var(--button-border);
@@ -698,6 +701,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            flex-shrink: 0;
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
             transition: all 0.2s ease;
@@ -716,6 +720,7 @@
             position: relative;
             display: flex;
             align-items: center;
+            flex-shrink: 0;
         }
         .theme-popup {
             position: absolute;
@@ -1131,6 +1136,12 @@
             .theme-popup {
                 gap: 6px;
                 padding: 8px 10px;
+                left: auto;
+                right: 0;
+                transform: translateY(0);
+            }
+            .theme-popup.show {
+                transform: translateY(0);
             }
             .theme-dot {
                 width: 26px;
