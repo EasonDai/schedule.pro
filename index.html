@@ -2,12 +2,14 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>schedule.pro</title>
-    <!-- 方式1：使用相对路径（推荐） -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>课表 Pro</title>
     <link rel="icon" href="favicon.ico" type="image/x-icon">
     <link rel="apple-touch-icon" href="apple-touch-icon.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -19,9 +21,14 @@
             background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
             color: var(--text-color);
             min-height: 100vh;
+            min-height: 100dvh;
             overflow: hidden;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-user-select: none;
+            user-select: none;
         }
-        /* 默认配色方案 - 深色主题 */
+
+        /* ===== 配色变量 ===== */
         :root {
             --bg-gradient-start: #1a1a1a;
             --bg-gradient-end: #0d0d0d;
@@ -44,18 +51,14 @@
             --empty-cell-color: #555;
             --class-details-color: #aaa;
             --class-time-color: #888;
-             /* 默认主题状态颜色 */
-            --status-upcoming-bg: rgba(100, 180, 255, 0.2);
-            --status-upcoming-color: #64b4ff;
-            --status-upcoming-border: rgba(100, 180, 255, 0.3);
-            --status-ongoing-bg: rgba(50, 215, 75, 0.2);
-            --status-ongoing-color: #32d74b;
-            --status-ongoing-border: rgba(50, 215, 75, 0.3);
-            --status-finished-bg: rgba(150, 150, 150, 0.2);
-            --status-finished-color: #969696;
-            --status-finished-border: rgba(150, 150, 150, 0.3);
+            --modal-bg: #1c1c1e;
+            --modal-overlay: rgba(0, 0, 0, 0.7);
+            --input-bg: #2c2c2e;
+            --input-border: #3a3a3c;
+            --danger-color: #ff453a;
+            --success-color: #32d74b;
         }
-        /* 配色方案1 - 深蓝主题 */
+
         .theme-dark-blue {
             --bg-gradient-start: #0f172a;
             --bg-gradient-end: #0c1220;
@@ -68,18 +71,10 @@
             --accent-color: #3b82f6;
             --accent-color-dark: #2563eb;
             --progress-bar-color: #3b82f6;
-             /* 深蓝主题状态颜色 */
-            --status-upcoming-bg: rgba(100, 180, 255, 0.2); /* 保持蓝色系 */
-            --status-upcoming-color: #64b4ff;
-            --status-upcoming-border: rgba(100, 180, 255, 0.3);
-            --status-ongoing-bg: rgba(50, 215, 75, 0.2); /* 保持绿色系 */
-            --status-ongoing-color: #32d74b;
-            --status-ongoing-border: rgba(50, 215, 75, 0.3);
-            --status-finished-bg: rgba(150, 150, 150, 0.2); /* 保持灰色系 */
-            --status-finished-color: #969696;
-            --status-finished-border: rgba(150, 150, 150, 0.3);
+            --modal-bg: #0f172a;
+            --input-bg: #1e293b;
+            --input-border: #334155;
         }
-        /* 配色方案2 - 紫色主题 */
         .theme-purple {
             --bg-gradient-start: #1f1a2a;
             --bg-gradient-end: #181421;
@@ -92,18 +87,10 @@
             --accent-color: #8b5cf6;
             --accent-color-dark: #7c3aed;
             --progress-bar-color: #8b5cf6;
-            /* 紫色主题状态颜色 */
-            --status-upcoming-bg: rgba(180, 150, 255, 0.2); /* 紫色系未上课 */
-            --status-upcoming-color: #b496ff;
-            --status-upcoming-border: rgba(180, 150, 255, 0.3);
-            --status-ongoing-bg: rgba(50, 215, 75, 0.2); /* 保持绿色系 */
-            --status-ongoing-color: #32d74b;
-            --status-ongoing-border: rgba(50, 215, 75, 0.3);
-            --status-finished-bg: rgba(150, 150, 150, 0.2); /* 保持灰色系 */
-            --status-finished-color: #969696;
-            --status-finished-border: rgba(150, 150, 150, 0.3);
+            --modal-bg: #1f1a2a;
+            --input-bg: #2d243f;
+            --input-border: #443563;
         }
-        /* 配色方案3 - 绿色主题 */
         .theme-green {
             --bg-gradient-start: #0f1e1a;
             --bg-gradient-end: #0c1814;
@@ -116,18 +103,10 @@
             --accent-color: #10b981;
             --accent-color-dark: #059669;
             --progress-bar-color: #10b981;
-            /* 绿色主题状态颜色 */
-            --status-upcoming-bg: rgba(100, 180, 255, 0.2); /* 蓝色系未上课 */
-            --status-upcoming-color: #64b4ff;
-            --status-upcoming-border: rgba(100, 180, 255, 0.3);
-            --status-ongoing-bg: rgba(16, 185, 129, 0.2); /* 绿色系上课中 (使用主题主色) */
-            --status-ongoing-color: #10b981;
-            --status-ongoing-border: rgba(16, 185, 129, 0.3);
-            --status-finished-bg: rgba(150, 150, 150, 0.2); /* 保持灰色系 */
-            --status-finished-color: #969696;
-            --status-finished-border: rgba(150, 150, 150, 0.3);
+            --modal-bg: #0f1e1a;
+            --input-bg: #16332a;
+            --input-border: #224d3f;
         }
-        /* 配色方案4 - 橙色主题 */
         .theme-orange {
             --bg-gradient-start: #2a1a0f;
             --bg-gradient-end: #20140c;
@@ -140,51 +119,84 @@
             --accent-color: #f97316;
             --accent-color-dark: #ea580c;
             --progress-bar-color: #f97316;
-            /* 橙色主题状态颜色 */
-            --status-upcoming-bg: rgba(100, 180, 255, 0.2); /* 蓝色系未上课 */
-            --status-upcoming-color: #64b4ff;
-            --status-upcoming-border: rgba(100, 180, 255, 0.3);
-            --status-ongoing-bg: rgba(249, 115, 22, 0.2); /* 橙色系上课中 (使用主题主色) */
-            --status-ongoing-color: #f97316;
-            --status-ongoing-border: rgba(249, 115, 22, 0.3);
-            --status-finished-bg: rgba(150, 150, 150, 0.2); /* 保持灰色系 */
-            --status-finished-color: #969696;
-            --status-finished-border: rgba(150, 150, 150, 0.3);
+            --modal-bg: #2a1a0f;
+            --input-bg: #3f2a16;
+            --input-border: #634422;
         }
+
+        /* ===== 主布局 ===== */
         .container {
             width: 100%;
             height: 100vh;
+            height: 100dvh;
             position: relative;
             overflow: hidden;
         }
+
+        /* ===== 顶部栏 ===== */
         header {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
-            padding: 25px 30px;
+            padding: 12px 16px;
             display: flex;
             justify-content: space-between;
+            align-items: center;
             z-index: 10;
             background: var(--header-bg);
             backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            flex-wrap: wrap;
+            gap: 8px;
         }
         .date {
-            font-size: 24px;
+            font-size: 18px;
             font-weight: 500;
+            white-space: nowrap;
         }
         .time {
-            font-size: 24px;
+            font-size: 18px;
             font-weight: 500;
+            white-space: nowrap;
         }
+        .header-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--button-bg);
+            border: 1px solid var(--button-border);
+            color: var(--text-color);
+            font-size: 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+        .header-btn:hover {
+            background: var(--button-bg-hover);
+            transform: scale(1.08);
+        }
+        .header-btn.active {
+            background: var(--accent-color);
+            border-color: var(--accent-color);
+        }
+
+        /* ===== 主内容区 ===== */
         .main-content {
             width: 100%;
             height: 100%;
             display: flex;
             align-items: center;
+            justify-content: center;
             position: relative;
             overflow: hidden;
         }
+
+        /* ===== 卡片视图 ===== */
         .schedule-container {
             display: flex;
             align-items: center;
@@ -207,63 +219,350 @@
             cursor: pointer;
             transition: all 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
             backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+            padding: 15px;
         }
-        .schedule-card .time {
+        .schedule-card .card-day {
             position: absolute;
-            bottom: 20px;
-            right: 20px;
-            font-size: 16px;
+            top: 16px;
+            left: 18px;
+            font-size: 13px;
             opacity: 0.8;
         }
-        .schedule-card .day {
+        .schedule-card .card-status {
             position: absolute;
-            top: 20px;
-            left: 20px;
-            font-size: 14px;
-            opacity: 0.8;
+            top: 14px;
+            right: 14px;
+            font-size: 11px;
+            padding: 3px 8px;
+            border-radius: 8px;
+            font-weight: 500;
+            white-space: nowrap;
         }
-        .schedule-card .teacher {
-            font-size: 18px;
+        .schedule-card .card-status.status-upcoming {
+            background: rgba(100, 180, 255, 0.2);
+            color: #64b4ff;
+            border: 1px solid rgba(100, 180, 255, 0.3);
+        }
+        .schedule-card .card-status.status-ongoing {
+            background: rgba(50, 215, 75, 0.2);
+            color: #32d74b;
+            border: 1px solid rgba(50, 215, 75, 0.3);
+        }
+        .schedule-card .card-status.status-finished {
+            background: rgba(150, 150, 150, 0.2);
+            color: #969696;
+            border: 1px solid rgba(150, 150, 150, 0.3);
+        }
+        .schedule-card .card-name {
+            font-size: inherit;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+        .schedule-card .card-teacher {
+            font-size: 0.65em;
             color: var(--class-details-color);
-            margin-top: 8px;
         }
-        .edit-btn {
+        .schedule-card .card-room {
+            font-size: 0.58em;
+            color: var(--class-time-color);
+            margin-top: 2px;
+        }
+        .schedule-card .card-time {
             position: absolute;
-            bottom: 30px;
-            right: 30px;
-            width: 70px;
-            height: 70px;
+            bottom: 16px;
+            right: 18px;
+            font-size: 0.55em;
+            opacity: 0.7;
+        }
+        .schedule-card .card-edit-btn {
+            position: absolute;
+            bottom: 14px;
+            left: 18px;
+            width: 28px;
+            height: 28px;
             border-radius: 50%;
-            background: var(--button-bg);
-            border: 1px solid var(--button-border);
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: var(--text-color);
+            font-size: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            z-index: 5;
+        }
+        .schedule-card:hover .card-edit-btn,
+        .schedule-card .card-edit-btn.always-show {
+            opacity: 0.9;
+        }
+
+        /* ===== 列表视图 ===== */
+        .list-view-container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            padding: 80px 16px 140px;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        .list-view-container.hidden {
+            display: none;
+        }
+        .schedule-container.hidden {
+            display: none;
+        }
+        .list-header {
+            text-align: center;
+            margin-bottom: 20px;
+            flex-shrink: 0;
+        }
+        .list-header h2 {
+            font-size: 22px;
+            font-weight: 600;
+        }
+        .list-header .list-date {
+            font-size: 14px;
+            color: var(--class-details-color);
+            margin-top: 4px;
+        }
+        .list-empty {
+            text-align: center;
+            color: var(--empty-cell-color);
+            font-size: 18px;
+            padding: 40px 20px;
+        }
+        .list-empty i {
+            font-size: 48px;
+            display: block;
+            margin-bottom: 12px;
+            opacity: 0.4;
+        }
+        .list-course-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 16px 18px;
+            margin-bottom: 10px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, var(--card-bg-gradient-start) 0%, var(--card-bg-gradient-end) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+        }
+        .list-course-item:active {
+            transform: scale(0.98);
+            background: var(--card-adjacent-gradient-start);
+        }
+        .list-course-item .period-badge {
+            min-width: 52px;
+            height: 52px;
+            border-radius: 14px;
+            background: var(--accent-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 18px;
+            line-height: 1.1;
+        }
+        .list-course-item .period-badge small {
+            font-size: 9px;
+            font-weight: 400;
+            opacity: 0.8;
+        }
+        .list-course-item .course-body {
+            flex: 1;
+            min-width: 0;
+        }
+        .list-course-item .course-body .course-name {
+            font-size: 17px;
+            font-weight: 600;
+            margin-bottom: 3px;
+        }
+        .list-course-item .course-body .course-meta {
+            font-size: 13px;
+            color: var(--class-details-color);
+        }
+        .list-course-item .course-time {
+            font-size: 12px;
+            color: var(--class-time-color);
+            white-space: nowrap;
+        }
+        .list-course-item .course-status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+        .list-course-item .course-status-dot.ongoing {
+            background: #32d74b;
+            box-shadow: 0 0 8px rgba(50, 215, 75, 0.5);
+        }
+        .list-course-item .course-status-dot.upcoming {
+            background: #64b4ff;
+            box-shadow: 0 0 8px rgba(100, 180, 255, 0.3);
+        }
+        .list-course-item .course-status-dot.finished {
+            background: #555;
+        }
+
+        /* ===== 指示器与进度 ===== */
+        .current-indicator {
+            position: absolute;
+            top: 68px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 113, 227, 0.85);
+            padding: 7px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+            z-index: 20;
+            box-shadow: 0 5px 15px rgba(0, 113, 227, 0.3);
+            white-space: nowrap;
+            max-width: 90%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .week-progress {
+            position: absolute;
+            bottom: 120px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80%;
+            max-width: 500px;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            overflow: hidden;
+            z-index: 10;
+        }
+        .progress-bar {
+            height: 100%;
+            background: var(--progress-bar-color);
+            border-radius: 3px;
+            transition: width 0.3s ease;
+        }
+
+        /* ===== 底部按钮 ===== */
+        .bottom-buttons {
+            position: absolute;
+            bottom: 24px;
+            left: 0;
+            right: 0;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 28px;
-            color: var(--text-color);
-            cursor: pointer;
-            transition: all 0.2s ease;
-            backdrop-filter: blur(10px);
+            gap: 12px;
             z-index: 10;
+            padding: 0 16px;
         }
-        .edit-btn:hover {
+        .today-btn {
+            padding: 13px 24px;
+            border-radius: 30px;
+            background: var(--button-bg);
+            border: 1px solid var(--button-border);
+            color: var(--text-color);
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+        .today-btn:hover {
+            background: var(--button-bg-hover);
+            transform: scale(1.03);
+        }
+        .bottom-icon-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--button-bg);
+            border: 1px solid var(--button-border);
+            color: var(--text-color);
+            font-size: 22px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            transition: all 0.2s ease;
+        }
+        .bottom-icon-btn:hover {
             background: var(--button-bg-hover);
             transform: scale(1.05);
         }
+        .bottom-icon-btn.active {
+            background: var(--accent-color);
+            border-color: var(--accent-color);
+        }
+
+        /* ===== 主题选择器 ===== */
+        .theme-selector {
+            position: absolute;
+            bottom: 28px;
+            left: 16px;
+            z-index: 20;
+            display: flex;
+            gap: 8px;
+        }
+        .theme-dot {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            border: 2px solid rgba(255, 255, 255, 0.25);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .theme-dot:hover {
+            transform: scale(1.15);
+            border-color: #fff;
+        }
+        .theme-dot.dot-default {
+            background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%);
+        }
+        .theme-dot.dot-blue {
+            background: linear-gradient(135deg, #0f172a 0%, #0c1220 100%);
+        }
+        .theme-dot.dot-purple {
+            background: linear-gradient(135deg, #1f1a2a 0%, #181421 100%);
+        }
+        .theme-dot.dot-green {
+            background: linear-gradient(135deg, #0f1e1a 0%, #0c1814 100%);
+        }
+        .theme-dot.dot-orange {
+            background: linear-gradient(135deg, #2a1a0f 0%, #20140c 100%);
+        }
+
+        /* ===== 完整课表面板 ===== */
         .timetable-section {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
+            height: 100dvh;
             background: var(--bg-gradient-start);
             z-index: 100;
             display: flex;
             flex-direction: column;
-            padding: 20px;
+            padding: 16px;
             transform: translateY(100%);
-            transition: transform 0.5s cubic-bezier(0.25, 0.1, 0.25, 1);
+            transition: transform 0.45s cubic-bezier(0.25, 0.1, 0.25, 1);
         }
         .timetable-section.active {
             transform: translateY(0);
@@ -272,13 +571,19 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 15px;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
             border-bottom: 1px solid var(--table-border);
+            flex-shrink: 0;
         }
         .timetable-header h2 {
-            font-size: 24px;
+            font-size: 22px;
             font-weight: 600;
+        }
+        .timetable-header .timetable-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
         }
         .close-timetable {
             background: none;
@@ -300,199 +605,501 @@
         }
         .timetable-container {
             flex: 1;
-            overflow-y: auto;
+            overflow: auto;
+            -webkit-overflow-scrolling: touch;
         }
         .timetable {
             width: 100%;
             border-collapse: collapse;
+            min-width: 650px;
         }
         .timetable th {
             background: var(--table-header-bg);
-            padding: 15px;
+            padding: 12px 6px;
             text-align: center;
             font-weight: 600;
             color: var(--text-color);
+            font-size: 14px;
+            position: sticky;
+            top: 0;
+            z-index: 2;
         }
         .timetable td {
-            padding: 15px;
+            padding: 10px 6px;
             text-align: center;
             border-bottom: 1px solid var(--table-border);
-            min-height: 80px;
+            min-height: 70px;
             vertical-align: top;
+            cursor: pointer;
+            transition: background 0.15s ease;
+            position: relative;
         }
-        .timetable .period {
+        .timetable td:hover {
+            background: rgba(255, 255, 255, 0.04);
+        }
+        .timetable td.empty-cell {
+            color: var(--empty-cell-color);
+            cursor: pointer;
+        }
+        .timetable td.empty-cell:hover {
+            color: var(--text-color);
+        }
+        .timetable td.empty-cell::after {
+            content: '+';
+            display: block;
+            font-size: 20px;
+            opacity: 0;
+            transition: opacity 0.15s ease;
+        }
+        .timetable td.empty-cell:hover::after {
+            opacity: 0.4;
+        }
+        .timetable .period-col {
             font-weight: 600;
             color: var(--class-details-color);
-            width: 80px;
+            width: 55px;
+            cursor: default;
+            font-size: 13px;
         }
-        .timetable .class-cell {
-            font-weight: 500;
+        .timetable .period-col:hover {
+            background: transparent;
         }
-        .timetable .class-cell.empty {
-            color: var(--empty-cell-color);
-        }
-        .class-info {
+        .timetable .class-info {
             display: flex;
             flex-direction: column;
             align-items: center;
         }
-        .class-name {
+        .timetable .class-name {
             font-weight: 600;
+            font-size: 13px;
+            margin-bottom: 3px;
+        }
+        .timetable .class-details {
+            font-size: 11px;
+            color: var(--class-details-color);
+        }
+        .timetable .class-time {
+            font-size: 10px;
+            color: var(--class-time-color);
+            margin-top: 2px;
+        }
+
+        /* ===== 编辑弹窗 ===== */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            height: 100dvh;
+            background: var(--modal-overlay);
+            z-index: 200;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .modal-sheet {
+            width: 100%;
+            max-width: 500px;
+            max-height: 85vh;
+            max-height: 85dvh;
+            background: var(--modal-bg);
+            border-radius: 22px 22px 0 0;
+            padding: 20px 20px 30px;
+            overflow-y: auto;
+            transform: translateY(100%);
+            transition: transform 0.35s cubic-bezier(0.25, 0.1, 0.25, 1);
+        }
+        .modal-overlay.active .modal-sheet {
+            transform: translateY(0);
+        }
+        .modal-sheet h3 {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 18px;
+            text-align: center;
+        }
+        .form-group {
+            margin-bottom: 14px;
+        }
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            color: var(--class-details-color);
             margin-bottom: 5px;
         }
-        .class-details {
-            font-size: 12px;
-            color: var(--class-details-color);
-            margin-top: 5px;
+        .form-row {
+            display: flex;
+            gap: 10px;
         }
-        .class-time {
-            font-size: 11px;
-            color: var(--class-time-color);
-            margin-top: 3px;
+        .form-row .form-group {
+            flex: 1;
         }
-        .today-btn {
-            position: absolute;
-            bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%);
-            padding: 15px 30px;
-            border-radius: 35px;
-            background: var(--button-bg);
-            border: 1px solid var(--button-border);
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 11px 14px;
+            border-radius: 12px;
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
             color: var(--text-color);
-            font-size: 18px;
-            font-weight: 500;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            backdrop-filter: blur(10px);
-            z-index: 10;
-            transition: all 0.2s ease;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.2s ease;
+            -webkit-appearance: none;
+            appearance: none;
         }
-        .today-btn:hover {
-            background: var(--button-bg-hover);
-            transform: translateX(-50%) scale(1.05);
+        .form-group input:focus,
+        .form-group select:focus {
+            border-color: var(--accent-color);
         }
-        .current-indicator {
-            position: absolute;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0, 113, 227, 0.8);
-            padding: 8px 15px;
-            border-radius: 20px;
-            font-size: 14px;
-            font-weight: 500;
-            z-index: 20;
-            box-shadow: 0 5px 15px rgba(0, 113, 227, 0.3);
+        .form-group select {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23aaa' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            padding-right: 32px;
         }
-        .week-progress {
-            position: absolute;
-            bottom: 120px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 80%;
-            height: 6px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 3px;
-            overflow: hidden;
-            z-index: 10;
-        }
-        .progress-bar {
-            height: 100%;
-            background: var(--progress-bar-color);
-            border-radius: 3px;
-            transition: width 0.3s ease;
-        }
-        /* 配色切换按钮 */
-        .theme-selector {
-            position: absolute;
-            bottom: 30px;
-            left: 30px;
-            z-index: 20;
+        .modal-buttons {
             display: flex;
             gap: 10px;
+            margin-top: 20px;
         }
-        .theme-btn {
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            border: 2px solid rgba(255, 255, 255, 0.3);
+        .btn {
+            flex: 1;
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
             cursor: pointer;
+            border: none;
             transition: all 0.2s ease;
         }
-        .theme-btn:hover {
-            transform: scale(1.1);
-            border-color: var(--text-color);
+        .btn-primary {
+            background: var(--accent-color);
+            color: #fff;
         }
-        .theme-default { background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%); }
-        .theme-blue { background: linear-gradient(135deg, #0f172a 0%, #0c1220 100%); }
-        .theme-purple { background: linear-gradient(135deg, #1f1a2a 0%, #181421 100%); }
-        .theme-green { background: linear-gradient(135deg, #0f1e1a 0%, #0c1814 100%); }
-        .theme-orange { background: linear-gradient(135deg, #2a1a0f 0%, #20140c 100%); }
-        /* 新增：课程卡片状态指示器样式 */
-        .schedule-card .class-status {
-            position: absolute;
-            top: 20px;
-            right: 20px;
+        .btn-primary:hover {
+            background: var(--accent-color-dark);
+        }
+        .btn-secondary {
+            background: var(--input-bg);
+            color: var(--text-color);
+            border: 1px solid var(--input-border);
+        }
+        .btn-danger {
+            background: transparent;
+            color: var(--danger-color);
+            border: 1px solid var(--danger-color);
             font-size: 14px;
-            padding: 4px 8px;
-            border-radius: 10px;
+        }
+        .btn-danger:hover {
+            background: rgba(255, 69, 58, 0.15);
+        }
+
+        /* ===== Toast 提示 ===== */
+        .toast {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-120px);
+            background: var(--accent-color);
+            color: #fff;
+            padding: 10px 22px;
+            border-radius: 22px;
+            font-size: 14px;
             font-weight: 500;
+            z-index: 300;
+            pointer-events: none;
+            transition: transform 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
+            white-space: nowrap;
         }
-        .schedule-card .class-status.status-upcoming {
-            background-color: var(--status-upcoming-bg);
-            color: var(--status-upcoming-color);
-            border: 1px solid var(--status-upcoming-border);
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
         }
-        .schedule-card .class-status.status-ongoing {
-            background-color: var(--status-ongoing-bg);
-            color: var(--status-ongoing-color);
-            border: 1px solid var(--status-ongoing-border);
+
+        /* ===== 响应式 - 平板/手机 ===== */
+        @media (max-width: 768px) {
+            .date {
+                font-size: 15px;
+            }
+            .time {
+                font-size: 15px;
+            }
+            .header-btn {
+                width: 32px;
+                height: 32px;
+                font-size: 14px;
+            }
+            .today-btn {
+                padding: 11px 18px;
+                font-size: 14px;
+            }
+            .bottom-icon-btn {
+                width: 44px;
+                height: 44px;
+                font-size: 20px;
+            }
+            .current-indicator {
+                font-size: 12px;
+                padding: 6px 12px;
+                top: 56px;
+            }
+            .timetable {
+                min-width: 550px;
+            }
+            .timetable th {
+                font-size: 12px;
+                padding: 10px 4px;
+            }
+            .timetable td {
+                padding: 8px 4px;
+            }
+            .timetable .class-name {
+                font-size: 12px;
+            }
+            .timetable .class-details {
+                font-size: 10px;
+            }
         }
-        .schedule-card .class-status.status-finished {
-            background-color: var(--status-finished-bg);
-            color: var(--status-finished-color);
-            border: 1px solid var(--status-finished-border);
+
+        /* ===== 响应式 - watchOS / 超小屏 ===== */
+        @media (max-width: 420px) {
+            header {
+                padding: 8px 10px;
+                gap: 4px;
+            }
+            .date {
+                font-size: 13px;
+            }
+            .time {
+                font-size: 13px;
+            }
+            .header-btn {
+                width: 30px;
+                height: 30px;
+                font-size: 13px;
+            }
+            .current-indicator {
+                font-size: 11px;
+                padding: 5px 10px;
+                top: 48px;
+            }
+            .schedule-card {
+                border-radius: 18px;
+            }
+            .schedule-card .card-day {
+                font-size: 11px;
+                top: 10px;
+                left: 12px;
+            }
+            .schedule-card .card-status {
+                font-size: 9px;
+                top: 9px;
+                right: 9px;
+                padding: 2px 6px;
+            }
+            .schedule-card .card-time {
+                font-size: 0.5em;
+                bottom: 10px;
+                right: 12px;
+            }
+            .schedule-card .card-edit-btn {
+                width: 24px;
+                height: 24px;
+                font-size: 10px;
+                bottom: 9px;
+                left: 12px;
+            }
+            .list-view-container {
+                padding: 65px 10px 120px;
+            }
+            .list-header h2 {
+                font-size: 18px;
+            }
+            .list-course-item {
+                padding: 12px 14px;
+                gap: 10px;
+                border-radius: 12px;
+            }
+            .list-course-item .period-badge {
+                min-width: 42px;
+                height: 42px;
+                font-size: 15px;
+                border-radius: 10px;
+            }
+            .list-course-item .course-body .course-name {
+                font-size: 15px;
+            }
+            .list-course-item .course-body .course-meta {
+                font-size: 11px;
+            }
+            .list-course-item .course-time {
+                font-size: 10px;
+            }
+            .today-btn {
+                padding: 10px 14px;
+                font-size: 13px;
+                border-radius: 24px;
+            }
+            .bottom-icon-btn {
+                width: 36px;
+                height: 36px;
+                font-size: 16px;
+            }
+            .bottom-buttons {
+                gap: 6px;
+                padding: 0 8px;
+            }
+            .theme-selector {
+                bottom: 24px;
+                left: 8px;
+                gap: 6px;
+            }
+            .theme-dot {
+                width: 22px;
+                height: 22px;
+            }
+            .timetable-section {
+                padding: 10px;
+            }
+            .timetable {
+                min-width: 480px;
+            }
+            .timetable th {
+                font-size: 10px;
+                padding: 8px 2px;
+            }
+            .timetable td {
+                padding: 6px 2px;
+            }
+            .timetable .class-name {
+                font-size: 10px;
+            }
+            .timetable .class-details {
+                font-size: 9px;
+            }
+            .timetable .period-col {
+                width: 40px;
+                font-size: 10px;
+            }
+            .modal-sheet {
+                border-radius: 18px 18px 0 0;
+                padding: 16px 14px 24px;
+            }
+            .modal-sheet h3 {
+                font-size: 18px;
+            }
+            .form-group input,
+            .form-group select {
+                padding: 10px 12px;
+                font-size: 15px;
+            }
+            .btn {
+                font-size: 14px;
+                padding: 10px 12px;
+            }
+        }
+
+        /* ===== 导出预览高亮 ===== */
+        .export-flash {
+            animation: flash 0.4s ease;
+        }
+        @keyframes flash {
+            0%,
+            100% {
+                filter: brightness(1);
+            }
+            50% {
+                filter: brightness(1.5);
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
+        <!-- 顶部栏 -->
         <header>
-            <div class="date" id="currentDate">2023年10月25日 星期三</div>
-            <div class="time" id="currentTime">10:30:45</div>
+            <div class="date" id="currentDate">加载中...</div>
+            <div class="time" id="currentTime">00:00:00</div>
         </header>
+
+        <!-- 主内容 -->
         <div class="main-content">
-            <div class="current-indicator" id="currentIndicator">当前课程：数学课</div>
+            <div class="current-indicator" id="currentIndicator">当前无课程</div>
+
+            <!-- 卡片滑动视图 -->
+            <div class="schedule-container" id="scheduleContainer"></div>
+
+            <!-- 列表视图 -->
+            <div class="list-view-container hidden" id="listViewContainer">
+                <div class="list-header">
+                    <h2 id="listViewTitle">今日课程</h2>
+                    <div class="list-date" id="listViewDate"></div>
+                </div>
+                <div class="list-empty hidden" id="listEmpty">
+                    <i class="fas fa-coffee"></i>
+                    今天没有课程，好好休息~
+                </div>
+                <div id="listViewCourses"></div>
+            </div>
+
+            <!-- 进度条 -->
             <div class="week-progress">
                 <div class="progress-bar" id="progressBar"></div>
             </div>
-            <div class="schedule-container" id="scheduleContainer">
-                <!-- 课程滑块将动态生成 -->
-            </div>
         </div>
-        <button class="today-btn" id="todayBtn">
-            <i class="fas fa-sync-alt"></i> 回到当前
-        </button>
-        <div class="edit-btn" id="editBtn">
-            <i class="fas fa-table"></i>
+
+        <!-- 底部按钮 -->
+        <div class="bottom-buttons">
+            <button class="bottom-icon-btn active" id="btnCardView" title="卡片视图">
+                <i class="fas fa-id-card"></i>
+            </button>
+            <button class="bottom-icon-btn" id="btnListView" title="列表视图">
+                <i class="fas fa-list"></i>
+            </button>
+            <button class="today-btn" id="todayBtn">
+                <i class="fas fa-sync-alt"></i> 回到当前
+            </button>
+            <button class="bottom-icon-btn" id="editBtn" title="完整课表">
+                <i class="fas fa-table"></i>
+            </button>
+            <button class="bottom-icon-btn" id="btnAddCourse" title="添加课程">
+                <i class="fas fa-plus"></i>
+            </button>
+            <button class="bottom-icon-btn" id="btnExport" title="导出课表图片">
+                <i class="fas fa-download"></i>
+            </button>
         </div>
+
+        <!-- 主题颜色选择 -->
         <div class="theme-selector">
-            <div class="theme-btn theme-default" data-theme="default" title="默认主题"></div>
-            <div class="theme-btn theme-blue" data-theme="dark-blue" title="深蓝主题"></div>
-            <div class="theme-btn theme-purple" data-theme="purple" title="紫色主题"></div>
-            <div class="theme-btn theme-green" data-theme="green" title="绿色主题"></div>
-            <div class="theme-btn theme-orange" data-theme="orange" title="橙色主题"></div>
+            <div class="theme-dot dot-default" data-theme="default" title="深灰"></div>
+            <div class="theme-dot dot-blue" data-theme="dark-blue" title="深蓝"></div>
+            <div class="theme-dot dot-purple" data-theme="purple" title="紫色"></div>
+            <div class="theme-dot dot-green" data-theme="green" title="绿色"></div>
+            <div class="theme-dot dot-orange" data-theme="orange" title="橙色"></div>
         </div>
     </div>
+
+    <!-- 完整课表面板 -->
     <div class="timetable-section" id="timetableSection">
         <div class="timetable-header">
-            <h2>完整课表</h2>
-            <button class="close-timetable" id="closeTimetable">&times;</button>
+            <h2>📋 完整课表</h2>
+            <div class="timetable-actions">
+                <button class="header-btn" id="btnExportTable" title="导出课表图片" style="width:36px;height:36px;font-size:16px;">
+                    <i class="fas fa-download"></i>
+                </button>
+                <button class="close-timetable" id="closeTimetable">&times;</button>
+            </div>
         </div>
-        <div class="timetable-container">
+        <div class="timetable-container" id="timetableCapture">
             <table class="timetable" id="timetable">
                 <thead>
                     <tr>
@@ -502,588 +1109,904 @@
                         <th>周三</th>
                         <th>周四</th>
                         <th>周五</th>
-                        <th>周六</th> <!-- 新增 -->
-                        <th>周日</th> <!-- 新增 -->
+                        <th>周六</th>
+                        <th>周日</th>
                     </tr>
                 </thead>
-                <tbody id="timetableBody">
-                    <!-- 动态生成课表内容 -->
-                </tbody>
+                <tbody id="timetableBody"></tbody>
             </table>
         </div>
     </div>
+
+    <!-- 编辑弹窗 -->
+    <div class="modal-overlay" id="editModalOverlay">
+        <div class="modal-sheet" id="editModalSheet">
+            <h3 id="modalTitle">编辑课程</h3>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>星期</label>
+                    <select id="editDay">
+                        <option value="1">周一</option>
+                        <option value="2">周二</option>
+                        <option value="3">周三</option>
+                        <option value="4">周四</option>
+                        <option value="5">周五</option>
+                        <option value="6">周六</option>
+                        <option value="7">周日</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>节次</label>
+                    <select id="editPeriod">
+                        <option value="1">第1节</option>
+                        <option value="2">第2节</option>
+                        <option value="3">第3节</option>
+                        <option value="4">第4节</option>
+                        <option value="5">第5节</option>
+                        <option value="6">第6节</option>
+                        <option value="7">第7节</option>
+                        <option value="8">第8节</option>
+                        <option value="9">第9节</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>课程名称</label>
+                <input type="text" id="editName" placeholder="如：数学课">
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>老师</label>
+                    <input type="text" id="editTeacher" placeholder="如：李老师">
+                </div>
+                <div class="form-group">
+                    <label>教室</label>
+                    <input type="text" id="editRoom" placeholder="如：302">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>开始时间</label>
+                    <input type="time" id="editStartTime" value="08:00">
+                </div>
+                <div class="form-group">
+                    <label>结束时间</label>
+                    <input type="time" id="editEndTime" value="08:45">
+                </div>
+            </div>
+            <input type="hidden" id="editId">
+            <div class="modal-buttons">
+                <button class="btn btn-danger" id="btnDeleteCourse" style="display:none;">
+                    <i class="fas fa-trash"></i> 删除
+                </button>
+                <button class="btn btn-secondary" id="btnCancelEdit">取消</button>
+                <button class="btn btn-primary" id="btnSaveCourse">
+                    <i class="fas fa-check"></i> 保存
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // 获取元素
-            const scheduleContainer = document.getElementById('scheduleContainer');
-            const todayBtn = document.getElementById('todayBtn');
-            const editBtn = document.getElementById('editBtn');
-            const timetableSection = document.getElementById('timetableSection');
-            const closeTimetable = document.getElementById('closeTimetable');
-            const timetableBody = document.getElementById('timetableBody');
-            const currentIndicator = document.getElementById('currentIndicator');
-            const progressBar = document.getElementById('progressBar');
-            const themeButtons = document.querySelectorAll('.theme-btn');
-            let currentIndex = 0; // 当前课程索引
-            const centerX = window.innerWidth / 2; // 中心点x坐标
-            const baseWidth = 280; // 基础宽度
-            const maxWidth = 400; // 最大宽度
-            const baseHeight = 200; // 基础高度
-            const maxHeight = window.innerHeight * 0.66; // 最大高度为屏幕的2/3
-            const spacing = -50; // 负值实现堆叠效果
-            // 星期名称映射 (已更新)
-            const dayNames = {
-                1: "周一",
-                2: "周二",
-                3: "周三",
-                4: "周四",
-                5: "周五",
-                6: "周六", // 新增
-                7: "周日"  // 新增
-            };
-            // 节次名称映射
-            const periodNames = {
-                1: "第1节",
-                2: "第2节",
-                3: "第3节",
-                4: "第4节",
-                5: "第5节",
-                6: "第6节",
-                7: "第7节",
-                8: "第8节",
-                9: "第9节"
-            };
-            // 课表数据（每天9节课）(已更新)
-            const scheduleData = {
-                1: [ // 星期一
-                    { id: 1, name: "数学课", teacher: "李老师", room: "302", startTime: "08:00", endTime: "08:45" },
-                    { id: 2, name: "语文课", teacher: "张老师", room: "101", startTime: "08:55", endTime: "09:40" },
-                    { id: 3, name: "英语课", teacher: "王老师", room: "201", startTime: "09:50", endTime: "10:35" },
-                    { id: 4, name: "物理课", teacher: "陈老师", room: "405", startTime: "10:45", endTime: "11:30" },
-                    { id: 5, name: "午餐", teacher: "食堂", room: "", startTime: "11:30", endTime: "12:30" },
-                    { id: 6, name: "化学课", teacher: "刘老师", room: "308", startTime: "14:00", endTime: "14:45" },
-                    { id: 7, name: "生物课", teacher: "赵老师", room: "实验室", startTime: "14:55", endTime: "15:40" },
-                    { id: 8, name: "历史课", teacher: "孙老师", room: "205", startTime: "15:50", endTime: "16:35" },
-                    { id: 9, name: "地理课", teacher: "周老师", room: "301", startTime: "16:45", endTime: "17:30" }
-                ],
-                2: [ // 星期二
-                    { id: 10, name: "语文课", teacher: "张老师", room: "101", startTime: "08:00", endTime: "08:45" },
-                    { id: 11, name: "数学课", teacher: "李老师", room: "302", startTime: "08:55", endTime: "09:40" },
-                    { id: 12, name: "英语课", teacher: "王老师", room: "201", startTime: "09:50", endTime: "10:35" },
-                    { id: 13, name: "化学课", teacher: "刘老师", room: "308", startTime: "10:45", endTime: "11:30" },
-                    { id: 14, name: "午餐", teacher: "食堂", room: "", startTime: "11:30", endTime: "12:30" },
-                    { id: 15, name: "物理课", teacher: "陈老师", room: "405", startTime: "14:00", endTime: "14:45" },
-                    { id: 16, name: "生物课", teacher: "赵老师", room: "实验室", startTime: "14:55", endTime: "15:40" },
-                    { id: 17, name: "历史课", teacher: "孙老师", room: "205", startTime: "15:50", endTime: "16:35" },
-                    { id: 18, name: "美术课", teacher: "吴老师", room: "美术室", startTime: "16:45", endTime: "17:30" }
-                ],
-                3: [ // 星期三
-                    { id: 19, name: "英语课", teacher: "王老师", room: "201", startTime: "08:00", endTime: "08:45" },
-                    { id: 20, name: "语文课", teacher: "张老师", room: "101", startTime: "08:55", endTime: "09:40" },
-                    { id: 21, name: "数学课", teacher: "李老师", room: "302", startTime: "09:50", endTime: "10:35" },
-                    { id: 22, name: "物理课", teacher: "陈老师", room: "405", startTime: "10:45", endTime: "11:30" },
-                    { id: 23, name: "午餐", teacher: "食堂", room: "", startTime: "11:30", endTime: "12:30" },
-                    { id: 24, name: "化学课", teacher: "刘老师", room: "308", startTime: "14:00", endTime: "14:45" },
-                    { id: 25, name: "生物课", teacher: "赵老师", room: "实验室", startTime: "14:55", endTime: "15:40" },
-                    { id: 26, name: "历史课", teacher: "孙老师", room: "205", startTime: "15:50", endTime: "16:35" },
-                    { id: 27, name: "音乐课", teacher: "林老师", room: "音乐室", startTime: "16:45", endTime: "17:30" }
-                ],
-                4: [ // 星期四
-                    { id: 28, name: "物理课", teacher: "陈老师", room: "405", startTime: "08:00", endTime: "08:45" },
-                    { id: 29, name: "化学课", teacher: "刘老师", room: "308", startTime: "08:55", endTime: "09:40" },
-                    { id: 30, name: "数学课", teacher: "李老师", room: "302", startTime: "09:50", endTime: "10:35" },
-                    { id: 31, name: "语文课", teacher: "张老师", room: "101", startTime: "10:45", endTime: "11:30" },
-                    { id: 32, name: "午餐", teacher: "食堂", room: "", startTime: "11:30", endTime: "12:30" },
-                    { id: 33, name: "英语课", teacher: "王老师", room: "201", startTime: "14:00", endTime: "14:45" },
-                    { id: 34, name: "生物课", teacher: "赵老师", room: "实验室", startTime: "14:55", endTime: "15:40" },
-                    { id: 35, name: "历史课", teacher: "孙老师", room: "205", startTime: "15:50", endTime: "16:35" },
-                    { id: 36, name: "体育课", teacher: "郑老师", room: "操场", startTime: "16:45", endTime: "17:30" }
-                ],
-                5: [ // 星期五
-                    { id: 37, name: "化学课", teacher: "刘老师", room: "308", startTime: "08:00", endTime: "08:45" },
-                    { id: 38, name: "物理课", teacher: "陈老师", room: "405", startTime: "08:55", endTime: "09:40" },
-                    { id: 39, name: "语文课", teacher: "张老师", room: "101", startTime: "09:50", endTime: "10:35" },
-                    { id: 40, name: "数学课", teacher: "李老师", room: "302", startTime: "10:45", endTime: "11:30" },
-                    { id: 41, name: "午餐", teacher: "食堂", room: "", startTime: "11:30", endTime: "12:30" },
-                    { id: 42, name: "英语课", teacher: "王老师", room: "201", startTime: "14:00", endTime: "14:45" },
-                    { id: 43, name: "生物课", teacher: "赵老师", room: "实验室", startTime: "14:55", endTime: "15:40" },
-                    { id: 44, name: "历史课", teacher: "孙老师", room: "205", startTime: "15:50", endTime: "16:35" },
-                    { id: 45, name: "班会", teacher: "班主任", room: "教室", startTime: "16:45", endTime: "17:30" }
-                ],
-                // --- 新增部分：周六 ---
-                6: [ // 星期六
-                    { id: 46, name: "周末", teacher: "", room: "", startTime: "00:00", endTime: "23:59" }
-                    // 如果需要显示更多“周末”条目以匹配9节课的结构，可以添加更多，但通常一个全天的条目就够了
-                    // { id: 47, name: "周末", teacher: "", room: "", startTime: "00:00", endTime: "23:59" },
-                    // ... (可以继续添加直到第9个)
-                ],
-                // --- 新增部分：周日 ---
-                7: [ // 星期日
-                    { id: 47, name: "周末", teacher: "", room: "", startTime: "00:00", endTime: "23:59" }
-                    // 同样，如果需要可以添加更多
-                ]
-                // --- 新增部分结束 ---
-            };
-            // 更新时间和日期，并检查自动切换课程
-            function updateDateTime() {
-                const now = new Date();
-                const dateOptions = {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                    weekday: 'long'
-                };
-                document.getElementById('currentDate').textContent = now.toLocaleDateString('zh-CN', dateOptions);
-                document.getElementById('currentTime').textContent = now.toLocaleTimeString('zh-CN', {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    second: '2-digit'
-                });
-                // 每分钟检查一次当前课程和状态
-                if (now.getSeconds() === 0) {
-                    const allClasses = getAllClasses();
-                    if (allClasses.length > 0) {
-                        const previousIndex = currentIndex;
-                        const [currentStartHour, currentStartMinute] = allClasses[currentIndex].startTime.split(':').map(Number);
-                        const [currentEndHour, currentEndMinute] = allClasses[currentIndex].endTime.split(':').map(Number);
-                        const currentStartTime = currentStartHour * 60 + currentStartMinute;
-                        const currentEndTime = currentEndHour * 60 + currentEndMinute;
-                        const currentTimeInMinutes = now.getHours() * 60 + now.getMinutes();
+        (function() {
+            // ==================== 常量 ====================
+            const STORAGE_KEY = 'scheduleProData';
+            const dayNames = { 1: '周一', 2: '周二', 3: '周三', 4: '周四', 5: '周五', 6: '周六', 7: '周日' };
+            const periodNames = { 1: '第1节', 2: '第2节', 3: '第3节', 4: '第4节', 5: '第5节', 6: '第6节', 7: '第7节',
+                8: '第8节', 9: '第9节' };
 
-                        // --- 修改部分：更新周末处理逻辑 ---
-                        const today = now.getDay(); // 0=周日, 1=周一, ..., 6=周六
-                        // 转换为课表中的星期（1=周一, 2=周二, ..., 5=周五, 6=周六, 7=周日)
-                        let scheduleDayToday = today === 0 ? 7 : today;
+            // 默认课表数据
+            const DEFAULT_SCHEDULE = {
+                1: [
+                    { id: 1, name: '数学课', teacher: '李老师', room: '302', startTime: '08:00',
+                    endTime: '08:45' },
+                    { id: 2, name: '语文课', teacher: '张老师', room: '101', startTime: '08:55',
+                    endTime: '09:40' },
+                    { id: 3, name: '英语课', teacher: '王老师', room: '201', startTime: '09:50',
+                    endTime: '10:35' },
+                    { id: 4, name: '物理课', teacher: '陈老师', room: '405', startTime: '10:45',
+                    endTime: '11:30' },
+                    { id: 5, name: '午餐', teacher: '食堂', room: '餐厅', startTime: '11:30',
+                    endTime: '12:30' },
+                    { id: 6, name: '化学课', teacher: '刘老师', room: '308', startTime: '14:00',
+                    endTime: '14:45' },
+                    { id: 7, name: '生物课', teacher: '赵老师', room: '实验室', startTime: '14:55',
+                    endTime: '15:40' },
+                    { id: 8, name: '历史课', teacher: '孙老师', room: '205', startTime: '15:50',
+                    endTime: '16:35' },
+                    { id: 9, name: '地理课', teacher: '周老师', room: '301', startTime: '16:45',
+                    endTime: '17:30' },
+                ],
+                2: [
+                    { id: 10, name: '语文课', teacher: '张老师', room: '101', startTime: '08:00',
+                    endTime: '08:45' },
+                    { id: 11, name: '数学课', teacher: '李老师', room: '302', startTime: '08:55',
+                    endTime: '09:40' },
+                    { id: 12, name: '英语课', teacher: '王老师', room: '201', startTime: '09:50',
+                    endTime: '10:35' },
+                    { id: 13, name: '化学课', teacher: '刘老师', room: '308', startTime: '10:45',
+                    endTime: '11:30' },
+                    { id: 14, name: '午餐', teacher: '食堂', room: '餐厅', startTime: '11:30',
+                    endTime: '12:30' },
+                    { id: 15, name: '物理课', teacher: '陈老师', room: '405', startTime: '14:00',
+                    endTime: '14:45' },
+                    { id: 16, name: '生物课', teacher: '赵老师', room: '实验室', startTime: '14:55',
+                    endTime: '15:40' },
+                    { id: 17, name: '历史课', teacher: '孙老师', room: '205', startTime: '15:50',
+                    endTime: '16:35' },
+                    { id: 18, name: '美术课', teacher: '吴老师', room: '美术室', startTime: '16:45',
+                    endTime: '17:30' },
+                ],
+                3: [
+                    { id: 19, name: '英语课', teacher: '王老师', room: '201', startTime: '08:00',
+                    endTime: '08:45' },
+                    { id: 20, name: '语文课', teacher: '张老师', room: '101', startTime: '08:55',
+                    endTime: '09:40' },
+                    { id: 21, name: '数学课', teacher: '李老师', room: '302', startTime: '09:50',
+                    endTime: '10:35' },
+                    { id: 22, name: '物理课', teacher: '陈老师', room: '405', startTime: '10:45',
+                    endTime: '11:30' },
+                    { id: 23, name: '午餐', teacher: '食堂', room: '餐厅', startTime: '11:30',
+                    endTime: '12:30' },
+                    { id: 24, name: '化学课', teacher: '刘老师', room: '308', startTime: '14:00',
+                    endTime: '14:45' },
+                    { id: 25, name: '生物课', teacher: '赵老师', room: '实验室', startTime: '14:55',
+                    endTime: '15:40' },
+                    { id: 26, name: '历史课', teacher: '孙老师', room: '205', startTime: '15:50',
+                    endTime: '16:35' },
+                    { id: 27, name: '音乐课', teacher: '林老师', room: '音乐室', startTime: '16:45',
+                    endTime: '17:30' },
+                ],
+                4: [
+                    { id: 28, name: '物理课', teacher: '陈老师', room: '405', startTime: '08:00',
+                    endTime: '08:45' },
+                    { id: 29, name: '化学课', teacher: '刘老师', room: '308', startTime: '08:55',
+                    endTime: '09:40' },
+                    { id: 30, name: '数学课', teacher: '李老师', room: '302', startTime: '09:50',
+                    endTime: '10:35' },
+                    { id: 31, name: '语文课', teacher: '张老师', room: '101', startTime: '10:45',
+                    endTime: '11:30' },
+                    { id: 32, name: '午餐', teacher: '食堂', room: '餐厅', startTime: '11:30',
+                    endTime: '12:30' },
+                    { id: 33, name: '英语课', teacher: '王老师', room: '201', startTime: '14:00',
+                    endTime: '14:45' },
+                    { id: 34, name: '生物课', teacher: '赵老师', room: '实验室', startTime: '14:55',
+                    endTime: '15:40' },
+                    { id: 35, name: '历史课', teacher: '孙老师', room: '205', startTime: '15:50',
+                    endTime: '16:35' },
+                    { id: 36, name: '体育课', teacher: '郑老师', room: '操场', startTime: '16:45',
+                    endTime: '17:30' },
+                ],
+                5: [
+                    { id: 37, name: '化学课', teacher: '刘老师', room: '308', startTime: '08:00',
+                    endTime: '08:45' },
+                    { id: 38, name: '物理课', teacher: '陈老师', room: '405', startTime: '08:55',
+                    endTime: '09:40' },
+                    { id: 39, name: '语文课', teacher: '张老师', room: '101', startTime: '09:50',
+                    endTime: '10:35' },
+                    { id: 40, name: '数学课', teacher: '李老师', room: '302', startTime: '10:45',
+                    endTime: '11:30' },
+                    { id: 41, name: '午餐', teacher: '食堂', room: '餐厅', startTime: '11:30',
+                    endTime: '12:30' },
+                    { id: 42, name: '英语课', teacher: '王老师', room: '201', startTime: '14:00',
+                    endTime: '14:45' },
+                    { id: 43, name: '生物课', teacher: '赵老师', room: '实验室', startTime: '14:55',
+                    endTime: '15:40' },
+                    { id: 44, name: '历史课', teacher: '孙老师', room: '205', startTime: '15:50',
+                    endTime: '16:35' },
+                    { id: 45, name: '班会', teacher: '班主任', room: '教室', startTime: '16:45',
+                    endTime: '17:30' },
+                ],
+                6: [], // 周六 - 无课程
+                7: [], // 周日 - 无课程
+            };
 
-                        // 检查当前索引指向的课程是否属于今天
-                        const isCurrentIndexOutOfDate = allClasses[currentIndex].day !== scheduleDayToday;
+            // ==================== 数据持久化 ====================
+            let scheduleData = loadScheduleData();
+            let nextId = getMaxId() + 1;
 
-                        // 如果当前课程已结束，或者新的一天开始了（currentIndex 对应的课程不是今天的课程了）
-                        const isCurrentClassOver = currentTimeInMinutes > currentEndTime;
-                        if (isCurrentClassOver || isCurrentIndexOutOfDate) {
-                            // 需要切换到下一节课
-                            const newIndex = getCurrentClassIndex();
-                            if (newIndex !== currentIndex) {
-                                currentIndex = newIndex;
-                                updateCards();
-                                updateCurrentClass();
-                                updateCardStatus(); // 更新状态
-                            } else {
-                                // 即使索引没变（比如已经是最后一节课且还没到第二天），也更新状态
-                                updateCurrentClass();
-                                updateCardStatus();
-                            }
-                        } else {
-                            // 课程未结束，但仍需更新状态和当前课程显示
-                            updateCurrentClass();
-                            updateCardStatus(); // 更新状态
+            function loadScheduleData() {
+                try {
+                    const raw = localStorage.getItem(STORAGE_KEY);
+                    if (raw) {
+                        const parsed = JSON.parse(raw);
+                        // 确保所有天都存在
+                        for (let d = 1; d <= 7; d++) {
+                            if (!parsed[d]) parsed[d] = [];
                         }
-                        // --- 修改部分结束 ---
-                    } else {
-                        updateCurrentClass(); // 即使没课也更新一下显示
+                        return parsed;
                     }
+                } catch (e) {
+                    console.warn('课表数据读取失败，使用默认数据', e);
                 }
-                // 每秒钟更新一次状态（如果你加入了状态功能，且希望状态秒级更新）
-                // else {
-                //     updateCardStatus();
-                // }
+                // 深拷贝默认数据
+                return JSON.parse(JSON.stringify(DEFAULT_SCHEDULE));
             }
-            updateDateTime();
-            setInterval(updateDateTime, 1000);
-            // 切换主题
-            themeButtons.forEach(button => {
-                button.addEventListener('click', function() {
-                    const theme = this.getAttribute('data-theme');
-                    document.body.className = `theme-${theme}`;
-                });
-            });
-            // 计算卡片位置和大小
-            function calculateCardPosition(index, totalCards) {
-                // 循环处理索引
-                let adjustedIndex = index;
-                if (adjustedIndex < 0) {
-                    adjustedIndex = totalCards + (adjustedIndex % totalCards);
-                } else if (adjustedIndex >= totalCards) {
-                    adjustedIndex = adjustedIndex % totalCards;
+
+            function saveScheduleData() {
+                try {
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(scheduleData));
+                } catch (e) {
+                    showToast('⚠️ 存储空间不足，请清理浏览器数据');
                 }
-                const xPosition = centerX + (adjustedIndex - currentIndex) * (baseWidth + spacing);
-                // 计算距离中心的距离
-                const distance = Math.abs(adjustedIndex - currentIndex);
-                const normalizedDistance = Math.min(distance / 3, 1);
-                // 根据距离计算缩放比例（中心最大，两侧逐渐变小）
-                const scale = 1 - (normalizedDistance * 0.3);
-                // 计算实际尺寸
-                const width = baseWidth + (maxWidth - baseWidth) * (1 - normalizedDistance);
-                const height = baseHeight + (maxHeight - baseHeight) * (1 - normalizedDistance);
-                // 计算z-index（中心最高）
-                const zIndex = Math.round(10 - (normalizedDistance * 8));
-                // 计算渐变背景色（中心最深）
-                let bgColor;
-                if (distance === 0) {
-                    // 当前课程 - 深色
-                    bgColor = `linear-gradient(135deg, var(--card-bg-gradient-start) 0%, var(--card-bg-gradient-end) 100%)`;
-                } else if (distance === 1) {
-                    // 相邻课程 - 中等深度
-                    bgColor = `linear-gradient(135deg, var(--card-adjacent-gradient-start) 0%, var(--card-adjacent-gradient-end) 100%)`;
+            }
+
+            function getMaxId() {
+                let max = 0;
+                for (let d = 1; d <= 7; d++) {
+                    (scheduleData[d] || []).forEach(c => { if (c.id > max) max = c.id; });
+                }
+                return max;
+            }
+
+            function resetToDefault() {
+                if (confirm('确定要恢复默认课表吗？你修改的数据将丢失。')) {
+                    scheduleData = JSON.parse(JSON.stringify(DEFAULT_SCHEDULE));
+                    nextId = getMaxId() + 1;
+                    saveScheduleData();
+                    refreshAll();
+                    showToast('✅ 已恢复默认课表');
+                }
+            }
+
+            // ==================== DOM 引用 ====================
+            const $ = (sel) => document.querySelector(sel);
+            const $$ = (sel) => document.querySelectorAll(sel);
+
+            const scheduleContainer = $('#scheduleContainer');
+            const listViewContainer = $('#listViewContainer');
+            const listViewCourses = $('#listViewCourses');
+            const listEmpty = $('#listEmpty');
+            const listViewTitle = $('#listViewTitle');
+            const listViewDate = $('#listViewDate');
+            const todayBtn = $('#todayBtn');
+            const editBtn = $('#editBtn');
+            const btnAddCourse = $('#btnAddCourse');
+            const timetableSection = $('#timetableSection');
+            const closeTimetable = $('#closeTimetable');
+            const timetableBody = $('#timetableBody');
+            const currentIndicator = $('#currentIndicator');
+            const progressBar = $('#progressBar');
+            const btnCardView = $('#btnCardView');
+            const btnListView = $('#btnListView');
+            const btnExport = $('#btnExport');
+            const btnExportTable = $('#btnExportTable');
+            const editModalOverlay = $('#editModalOverlay');
+            const toast = $('#toast');
+
+            // ==================== 状态 ====================
+            let currentIndex = 0;
+            let currentView = 'card'; // 'card' | 'list'
+            let editingClassId = null; // 正在编辑的课程 id
+
+            // ==================== 卡片视图 ====================
+            let centerX = window.innerWidth / 2;
+            let baseWidth, maxWidth, baseHeight, maxHeight, spacing;
+
+            function calcCardSizes() {
+                const w = window.innerWidth;
+                const h = window.innerHeight;
+                centerX = w / 2;
+                if (w <= 420) {
+                    baseWidth = 170;
+                    maxWidth = 230;
+                    spacing = -35;
+                } else if (w <= 768) {
+                    baseWidth = 210;
+                    maxWidth = 290;
+                    spacing = -42;
                 } else {
-                    // 其他课程 - 浅色
-                    bgColor = `linear-gradient(135deg, var(--card-far-gradient-start) 0%, var(--card-far-gradient-end) 100%)`;
+                    baseWidth = 280;
+                    maxWidth = 400;
+                    spacing = -50;
                 }
-                return {
-                    x: xPosition,
-                    y: window.innerHeight / 2,
-                    width: width,
-                    height: height,
-                    scale: scale,
-                    zIndex: zIndex,
-                    background: bgColor
-                };
+                baseHeight = Math.min(180, h * 0.33);
+                maxHeight = Math.min(h * 0.62, 420);
             }
-            // 获取所有课程（按顺序）(已更新)
+            calcCardSizes();
+
             function getAllClasses() {
-                const allClasses = [];
-                // 修改循环范围以包含周六(6)和周日(7)
+                const all = [];
                 for (let day = 1; day <= 7; day++) {
-                    const dayClasses = scheduleData[day] || [];
-                    dayClasses.forEach((period, index) => {
-                        allClasses.push({
-                            ...period,
-                            day: day,
-                            period: index + 1
-                        });
+                    (scheduleData[day] || []).forEach((course, idx) => {
+                        all.push({ ...course, day, period: idx + 1 });
                     });
                 }
-                return allClasses;
+                return all;
             }
-            // 创建所有课程滑块
+
+            function calculateCardPosition(index, total) {
+                let adj = index;
+                if (adj < 0) adj = total + (adj % total);
+                else if (adj >= total) adj = adj % total;
+                const xPos = centerX + (adj - currentIndex) * (baseWidth + spacing);
+                const dist = Math.abs(adj - currentIndex);
+                const normDist = Math.min(dist / 3, 1);
+                const scale = 1 - normDist * 0.3;
+                const w = baseWidth + (maxWidth - baseWidth) * (1 - normDist);
+                const h = baseHeight + (maxHeight - baseHeight) * (1 - normDist);
+                const z = Math.round(10 - normDist * 8);
+                let bg;
+                if (dist === 0) bg = 'var(--card-bg-gradient-start)';
+                else if (dist === 1) bg = 'var(--card-adjacent-gradient-start)';
+                else bg = 'var(--card-far-gradient-start)';
+                return { x: xPos, y: window.innerHeight / 2, width: w, height: h, scale, zIndex: z, background: bg,
+                    isCenter: dist === 0 };
+            }
+
             function createClassCards() {
                 scheduleContainer.innerHTML = '';
-                const allClasses = getAllClasses();
-                const totalCards = allClasses.length;
-                if (totalCards === 0) return;
-                allClasses.forEach((classInfo, index) => {
+                const all = getAllClasses();
+                if (all.length === 0) {
+                    scheduleContainer.innerHTML =
+                        '<div style="text-align:center;color:#888;width:100%;padding-top:40vh;"><i class="fas fa-calendar-plus" style="font-size:48px;display:block;margin-bottom:12px;"></i>还没有课程，点击 + 添加</div>';
+                    return;
+                }
+                all.forEach((c, i) => {
                     const card = document.createElement('div');
                     card.className = 'schedule-card';
-                    card.setAttribute('data-index', index);
-                    // 处理老师信息显示
-                    let teacherInfo = '';
-                    if (classInfo.teacher) {
-                        teacherInfo = `<div class="teacher">${classInfo.teacher}</div>`;
-                    }
-                    // --- 修改部分：添加状态指示器 div ---
+                    card.setAttribute('data-index', i);
+                    card.setAttribute('data-id', c.id);
                     card.innerHTML = `
-                        <div class="day">${dayNames[classInfo.day]} ${periodNames[classInfo.period]}</div>
-                        <div>${classInfo.name}</div>
-                        ${teacherInfo}
-                        <div class="time">${classInfo.startTime} - ${classInfo.endTime}</div>
-                        <!-- 新增的状态指示器 -->
-                        <div class="class-status" id="status-${index}">状态</div>
+                        <div class="card-day">${dayNames[c.day]} ${periodNames[c.period]}</div>
+                        <div class="card-status" id="status-${i}">状态</div>
+                        <div class="card-name">${c.name}</div>
+                        <div class="card-teacher">${c.teacher || ''}</div>
+                        <div class="card-room">${c.room ? '📍 ' + c.room : ''}</div>
+                        <div class="card-time">${c.startTime} - ${c.endTime}</div>
+                        <button class="card-edit-btn always-show" data-action="edit" data-id="${c.id}" title="编辑此课程">
+                            <i class="fas fa-pen"></i>
+                        </button>
                     `;
-                    // --- 修改结束 ---
                     scheduleContainer.appendChild(card);
                 });
                 updateCards();
-                // --- 新增：在创建卡片后立即更新一次状态 ---
                 updateCardStatus();
-                // --- 新增结束 ---
             }
-            // 更新所有卡片位置和大小
+
             function updateCards() {
-                const allClasses = getAllClasses();
-                const totalCards = allClasses.length;
-                const cards = document.querySelectorAll('.schedule-card');
-                if (totalCards === 0) return;
+                const all = getAllClasses();
+                const total = all.length;
+                const cards = $$('.schedule-card');
+                if (total === 0) return;
                 cards.forEach(card => {
-                    const index = parseInt(card.getAttribute('data-index'));
-                    const position = calculateCardPosition(index, totalCards);
-                    // 应用位置和大小
-                    card.style.left = `${position.x - position.width / 2}px`;
-                    card.style.top = `${position.y - position.height / 2}px`;
-                    card.style.width = `${position.width}px`;
-                    card.style.height = `${position.height}px`;
-                    card.style.transform = `scale(${position.scale})`;
-                    card.style.zIndex = position.zIndex;
-                    card.style.background = position.background;
-                    // 设置字体大小
-                    const fontSize = 24 + (40 - 24) * (1 - Math.abs(index - currentIndex) / 3);
+                    const idx = parseInt(card.getAttribute('data-index'));
+                    const pos = calculateCardPosition(idx, total);
+                    card.style.left = `${pos.x - pos.width / 2}px`;
+                    card.style.top = `${pos.y - pos.height / 2}px`;
+                    card.style.width = `${pos.width}px`;
+                    card.style.height = `${pos.height}px`;
+                    card.style.transform = `scale(${pos.scale})`;
+                    card.style.zIndex = pos.zIndex;
+                    card.style.background = `linear-gradient(135deg, ${pos.background} 0%, var(--card-bg-gradient-end) 100%)`;
+                    const fontSize = 22 + (34 - 22) * (1 - Math.abs(idx - currentIndex) / 3);
                     card.style.fontSize = `${fontSize}px`;
-                    card.style.fontWeight = index === currentIndex ? '700' : '600';
+                    card.style.fontWeight = idx === currentIndex ? '700' : '600';
                 });
-                // 更新进度条
-                const progress = ((currentIndex % totalCards) / totalCards) * 100;
+                const progress = total > 0 ? ((currentIndex % total) / total) * 100 : 0;
                 progressBar.style.width = `${progress}%`;
-                // --- 新增：在更新卡片位置/大小后，也更新一次状态 ---
                 updateCardStatus();
-                // --- 新增结束 ---
             }
-            // 获取当前时间的课程索引（根据真实时间）(已更新)
+
+            function updateCardStatus() {
+                const all = getAllClasses();
+                const now = new Date();
+                const curMin = now.getHours() * 60 + now.getMinutes();
+                const today = now.getDay();
+                const sToday = today === 0 ? 7 : today;
+                all.forEach((c, i) => {
+                    const el = document.getElementById(`status-${i}`);
+                    if (!el) return;
+                    el.classList.remove('status-upcoming', 'status-ongoing', 'status-finished');
+                    const [sh, sm] = c.startTime.split(':').map(Number);
+                    const [eh, em] = c.endTime.split(':').map(Number);
+                    const start = sh * 60 + sm;
+                    const end = eh * 60 + em;
+                    let txt, cls;
+                    if (c.day < sToday || (c.day === sToday && end < curMin)) {
+                        txt = '已下课';
+                        cls = 'status-finished';
+                    } else if (c.day > sToday || (c.day === sToday && start > curMin)) {
+                        txt = '未上课';
+                        cls = 'status-upcoming';
+                    } else if (c.day === sToday && curMin >= start && curMin <= end) {
+                        txt = '上课中';
+                        cls = 'status-ongoing';
+                    } else {
+                        txt = '未上课';
+                        cls = 'status-upcoming';
+                    }
+                    el.textContent = txt;
+                    el.classList.add(cls);
+                });
+            }
+
             function getCurrentClassIndex() {
                 const now = new Date();
-                const currentTime = now.getHours() * 60 + now.getMinutes(); // 当前时间（分钟）
-                const dayOfWeek = now.getDay(); // 0=周日, 1=周一, ..., 6=周六
-                // 转换为课表中的星期（1=周一, 2=周二, ..., 5=周五, 6=周六, 7=周日)
-                // 注意：JavaScript 的 getDay() 中 0 是周日，我们需要将其映射为 7
-                let scheduleDay = dayOfWeek === 0 ? 7 : dayOfWeek;
+                const curMin = now.getHours() * 60 + now.getMinutes();
+                const today = now.getDay();
+                const sToday = today === 0 ? 7 : today;
+                const all = getAllClasses();
+                if (all.length === 0) return 0;
 
-                // 获取所有课程
-                const allClasses = getAllClasses();
-
-                // 查找当前时间对应的课程
-                let currentClassIndex = -1;
-                let nextClassIndex = -1;
-                let minTimeDiff = Infinity;
-
-                for (let i = 0; i < allClasses.length; i++) {
-                    const classInfo = allClasses[i];
-                    // 如果是当天的课程
-                    if (classInfo.day === scheduleDay) {
-                        const [startHour, startMinute] = classInfo.startTime.split(':').map(Number);
-                        const [endHour, endMinute] = classInfo.endTime.split(':').map(Number);
-                        const startTime = startHour * 60 + startMinute;
-                        const endTime = endHour * 60 + endMinute;
-                        // 如果当前时间在课程时间范围内
-                        if (currentTime >= startTime && currentTime <= endTime) {
-                            return i;
-                        }
-                        // 如果当前时间在课程开始之前，且是最近的课程
-                        if (currentTime < startTime) {
-                            const timeDiff = startTime - currentTime;
-                            if (timeDiff < minTimeDiff) {
-                                minTimeDiff = timeDiff;
-                                nextClassIndex = i;
-                            }
-                        }
+                // 找正在进行的课
+                for (let i = 0; i < all.length; i++) {
+                    if (all[i].day === sToday) {
+                        const [sh, sm] = all[i].startTime.split(':').map(Number);
+                        const [eh, em] = all[i].endTime.split(':').map(Number);
+                        if (curMin >= sh * 60 + sm && curMin <= eh * 60 + em) return i;
                     }
                 }
-
-                // 如果找到了下一个课程，返回它
-                if (nextClassIndex !== -1) {
-                    return nextClassIndex;
-                }
-
-                // 如果当前时间在所有课程之后，或者在周末，寻找下一个工作日的第一节课或周末课程
-                // 先查找 scheduleDay + 1 到 7 (周日) 的第一天的第一节课
-                for (let d = scheduleDay + 1; d <= 7; d++) {
-                    if (scheduleData[d] && scheduleData[d].length > 0) {
-                        // 找到该天在 allClasses 中的第一个索引
-                        for(let i=0; i < allClasses.length; i++) {
-                            if (allClasses[i].day === d && allClasses[i].period === 1) {
-                                return i;
-                            }
-                        }
+                // 找最近的下一节课（今天）
+                let best = -1;
+                let minDiff = Infinity;
+                for (let i = 0; i < all.length; i++) {
+                    if (all[i].day === sToday) {
+                        const [sh, sm] = all[i].startTime.split(':').map(Number);
+                        const diff = sh * 60 + sm - curMin;
+                        if (diff > 0 && diff < minDiff) { minDiff = diff;
+                            best = i; }
                     }
                 }
-                // 如果没找到（例如现在是周日晚上），查找周一的第一节课
-                for(let i=0; i < allClasses.length; i++) {
-                    if (allClasses[i].day === 1 && allClasses[i].period === 1) {
-                        return i;
+                if (best >= 0) return best;
+                // 找未来的天
+                for (let d = sToday + 1; d <= 7; d++) {
+                    for (let i = 0; i < all.length; i++) {
+                        if (all[i].day === d && all[i].period === 1) return i;
                     }
                 }
-
-                return 0; // fallback
+                // 兜底：下周周一第一节
+                for (let i = 0; i < all.length; i++) {
+                    if (all[i].day === 1 && all[i].period === 1) return i;
+                }
+                return 0;
             }
-            // 更新当前课程显示
+
             function updateCurrentClass() {
-                const allClasses = getAllClasses();
-                if (allClasses.length > 0 && allClasses[currentIndex]) {
-                    const currentClass = allClasses[currentIndex];
-                    currentIndicator.textContent = `当前课程：${currentClass.name} (${dayNames[currentClass.day]} ${periodNames[currentClass.period]})`;
+                const all = getAllClasses();
+                if (all.length > 0 && all[currentIndex]) {
+                    const c = all[currentIndex];
+                    currentIndicator.textContent =
+                        `当前课程：${c.name}（${dayNames[c.day]} ${periodNames[c.period]}）`;
                 } else {
                     currentIndicator.textContent = '当前无课程';
                 }
             }
-            // --- 新增函数：更新所有课程卡片的状态 ---
-            function updateCardStatus() {
-                const allClasses = getAllClasses();
-                const now = new Date();
-                const currentTimeInMinutes = now.getHours() * 60 + now.getMinutes(); // 获取当前时间（分钟）
-                const today = now.getDay(); // 0=周日, 1=周一, ..., 6=周六
-                // 转换为课表中的星期（1=周一, 2=周二, ..., 5=周五, 6=周六, 7=周日)
-                let scheduleDayToday = today === 0 ? 7 : today;
 
-                allClasses.forEach((classInfo, index) => {
-                    const statusElement = document.getElementById(`status-${index}`);
-                    if (!statusElement) return; // 防御性检查
-                    // 移除旧的状态类
-                    statusElement.classList.remove('status-upcoming', 'status-ongoing', 'status-finished');
-                    const [startHour, startMinute] = classInfo.startTime.split(':').map(Number);
-                    const [endHour, endMinute] = classInfo.endTime.split(':').map(Number);
-                    const startTimeInMinutes = startHour * 60 + startMinute;
-                    const endTimeInMinutes = endHour * 60 + endMinute;
-                    let statusText = "状态";
-                    let statusClass = "";
-                    // 判断状态
-                    if (classInfo.day < scheduleDayToday || (classInfo.day === scheduleDayToday && endTimeInMinutes < currentTimeInMinutes)) {
-                        // 课程日期在今天之前，或者课程日期是今天但结束时间已过
-                        statusText = "已下课";
-                        statusClass = "status-finished";
-                    } else if (classInfo.day > scheduleDayToday || (classInfo.day === scheduleDayToday && startTimeInMinutes > currentTimeInMinutes)) {
-                        // 课程日期在今天之后，或者课程日期是今天但开始时间未到
-                        statusText = "未上课";
-                        statusClass = "status-upcoming";
-                    } else if (classInfo.day === scheduleDayToday && currentTimeInMinutes >= startTimeInMinutes && currentTimeInMinutes <= endTimeInMinutes) {
-                        // 课程日期是今天，且当前时间在课程时间范围内
-                        statusText = "上课中";
-                        statusClass = "status-ongoing";
-                    }
-                    statusElement.textContent = statusText;
-                    statusElement.classList.add(statusClass);
+            // ==================== 列表视图 ====================
+            function renderListView() {
+                const now = new Date();
+                const today = now.getDay();
+                const sToday = today === 0 ? 7 : today;
+                const curMin = now.getHours() * 60 + now.getMinutes();
+                const dayCourses = (scheduleData[sToday] || []).map((c, i) => ({ ...c, day: sToday, period: i + 1 }));
+
+                listViewTitle.textContent = `今日课程 · ${dayNames[sToday]}`;
+                listViewDate.textContent = now.toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric',
+                    weekday: 'long' });
+
+                listViewCourses.innerHTML = '';
+
+                if (dayCourses.length === 0) {
+                    listEmpty.classList.remove('hidden');
+                    return;
+                }
+                listEmpty.classList.add('hidden');
+
+                dayCourses.forEach(c => {
+                    const [sh, sm] = c.startTime.split(':').map(Number);
+                    const [eh, em] = c.endTime.split(':').map(Number);
+                    const start = sh * 60 + sm;
+                    const end = eh * 60 + em;
+                    let statusCls, statusLabel;
+                    if (curMin >= start && curMin <= end) { statusCls = 'ongoing';
+                        statusLabel = '进行中'; } else if (curMin > end) { statusCls = 'finished';
+                        statusLabel = '已结束'; } else { statusCls = 'upcoming';
+                        statusLabel = '即将'; }
+
+                    const item = document.createElement('div');
+                    item.className = 'list-course-item';
+                    item.setAttribute('data-id', c.id);
+                    item.innerHTML = `
+                        <div class="period-badge">${c.period}<small>节</small></div>
+                        <div class="course-body">
+                            <div class="course-name">${c.name}</div>
+                            <div class="course-meta">${c.teacher || ''}${c.teacher && c.room ? ' · ' : ''}${c.room ? '📍' + c.room : ''}</div>
+                        </div>
+                        <div class="course-time">${c.startTime}<br>${c.endTime}</div>
+                        <div class="course-status-dot ${statusCls}" title="${statusLabel}"></div>
+                    `;
+                    item.addEventListener('click', () => openEditModal(c));
+                    listViewCourses.appendChild(item);
                 });
             }
-            // --- 新增函数结束 ---
-            // 回到当前课程
-            todayBtn.addEventListener('click', function() {
-                currentIndex = getCurrentClassIndex();
-                updateCards();
-                updateCurrentClass();
-                updateCardStatus(); // 新增：点击“回到当前”后也更新状态
-            });
-            // 打开完整课表
-            editBtn.addEventListener('click', function() {
-                renderTimetable();
-                timetableSection.classList.add('active');
-            });
-            // 关闭完整课表
-            closeTimetable.addEventListener('click', function() {
-                timetableSection.classList.remove('active');
-            });
-            // 渲染完整课表 (已更新)
+
+            // ==================== 视图切换 ====================
+            function switchView(mode) {
+                currentView = mode;
+                btnCardView.classList.toggle('active', mode === 'card');
+                btnListView.classList.toggle('active', mode === 'list');
+                if (mode === 'card') {
+                    scheduleContainer.classList.remove('hidden');
+                    listViewContainer.classList.add('hidden');
+                    updateCards();
+                } else {
+                    scheduleContainer.classList.add('hidden');
+                    listViewContainer.classList.remove('hidden');
+                    renderListView();
+                }
+            }
+
+            // ==================== 编辑弹窗 ====================
+            function openEditModal(courseData) {
+                editingClassId = courseData ? courseData.id : null;
+                $('#modalTitle').textContent = courseData ? '编辑课程' : '添加课程';
+                $('#editDay').value = courseData ? courseData.day : (new Date().getDay() || 7);
+                $('#editPeriod').value = courseData ? courseData.period : 1;
+                $('#editName').value = courseData ? courseData.name : '';
+                $('#editTeacher').value = courseData ? (courseData.teacher || '') : '';
+                $('#editRoom').value = courseData ? (courseData.room || '') : '';
+                $('#editStartTime').value = courseData ? courseData.startTime : '08:00';
+                $('#editEndTime').value = courseData ? courseData.endTime : '08:45';
+                $('#editId').value = courseData ? courseData.id : '';
+                $('#btnDeleteCourse').style.display = courseData ? 'block' : 'none';
+                editModalOverlay.classList.add('active');
+                setTimeout(() => $('#editName').focus(), 350);
+            }
+
+            function closeEditModal() {
+                editModalOverlay.classList.remove('active');
+                editingClassId = null;
+            }
+
+            function saveCourse() {
+                const day = parseInt($('#editDay').value);
+                const period = parseInt($('#editPeriod').value);
+                const name = $('#editName').value.trim();
+                const teacher = $('#editTeacher').value.trim();
+                const room = $('#editRoom').value.trim();
+                const startTime = $('#editStartTime').value;
+                const endTime = $('#editEndTime').value;
+                const editId = $('#editId').value;
+
+                if (!name) { showToast('⚠️ 请输入课程名称');
+                    $('#editName').focus(); return; }
+                if (startTime >= endTime) { showToast('⚠️ 结束时间必须晚于开始时间'); return; }
+
+                // 检查同一时间段是否已有课程
+                const existing = (scheduleData[day] || [])[period - 1];
+                if (existing && String(existing.id) !== String(editId)) {
+                    if (!confirm(`该时段已有「${existing.name}」，要替换吗？`)) return;
+                }
+
+                // 确保数组长度足够
+                while ((scheduleData[day] || []).length < period) {
+                    if (!scheduleData[day]) scheduleData[day] = [];
+                    scheduleData[day].push(null);
+                }
+
+                const courseObj = {
+                    id: editId ? parseInt(editId) : nextId++,
+                    name,
+                    teacher,
+                    room,
+                    startTime,
+                    endTime,
+                };
+
+                scheduleData[day][period - 1] = courseObj;
+                saveScheduleData();
+                closeEditModal();
+                refreshAll();
+                showToast(editId ? '✅ 课程已更新' : '✅ 课程已添加');
+            }
+
+            function deleteCourse() {
+                const editId = $('#editId').value;
+                if (!editId) return;
+                if (!confirm('确定要删除这门课程吗？此操作不可恢复。')) return;
+
+                for (let d = 1; d <= 7; d++) {
+                    const arr = scheduleData[d] || [];
+                    const idx = arr.findIndex(c => c && String(c.id) === String(editId));
+                    if (idx >= 0) {
+                        arr.splice(idx, 1);
+                        break;
+                    }
+                }
+                // 清理末尾 null
+                for (let d = 1; d <= 7; d++) {
+                    if (scheduleData[d]) {
+                        while (scheduleData[d].length > 0 && scheduleData[d][scheduleData[d].length - 1] === null) {
+                            scheduleData[d].pop();
+                        }
+                    }
+                }
+                saveScheduleData();
+                closeEditModal();
+                refreshAll();
+                showToast('🗑️ 课程已删除');
+            }
+
+            // ==================== 完整课表 ====================
             function renderTimetable() {
                 timetableBody.innerHTML = '';
-                // 生成9节课的行
-                for (let periodIndex = 0; periodIndex < 9; periodIndex++) {
+                for (let p = 0; p < 9; p++) {
                     const row = document.createElement('tr');
-                    // 节数
                     const periodCell = document.createElement('td');
-                    periodCell.className = 'period';
-                    periodCell.textContent = periodNames[periodIndex + 1];
+                    periodCell.className = 'period-col';
+                    periodCell.textContent = periodNames[p + 1];
                     row.appendChild(periodCell);
-                    // 周一到周日 (修改循环范围)
-                    for (let day = 1; day <= 7; day++) {
+                    for (let d = 1; d <= 7; d++) {
                         const cell = document.createElement('td');
-                        cell.className = 'class-cell';
-                        if (scheduleData[day] && scheduleData[day][periodIndex]) {
-                            const period = scheduleData[day][periodIndex];
+                        const course = (scheduleData[d] || [])[p] || null;
+                        if (course) {
                             cell.innerHTML = `
                                 <div class="class-info">
-                                    <div class="class-name">${period.name}</div>
-                                    <div class="class-details">${period.teacher} ${period.room}</div>
-                                    <div class="class-time">${period.startTime}-${period.endTime}</div>
+                                    <div class="class-name">${course.name}</div>
+                                    <div class="class-details">${course.teacher || ''}${course.teacher && course.room ? ' · ' : ''}${course.room || ''}</div>
+                                    <div class="class-time">${course.startTime}-${course.endTime}</div>
                                 </div>
                             `;
+                            cell.addEventListener('click', () => openEditModal({ ...course, day: d, period: p +
+                                1 }));
                         } else {
-                            cell.className = 'class-cell empty';
+                            cell.className = 'empty-cell';
                             cell.innerHTML = '<div class="class-info">-</div>';
+                            cell.addEventListener('click', () => openEditModal({ day: d, period: p + 1,
+                                startTime: '08:00', endTime: '08:45', name: '', teacher: '', room: '' }));
                         }
                         row.appendChild(cell);
                     }
                     timetableBody.appendChild(row);
                 }
             }
-            // 窗口大小改变时重新计算位置
-            window.addEventListener('resize', function() {
+
+            // ==================== 导出图片 ====================
+            function exportAsImage() {
+                if (typeof html2canvas === 'undefined') {
+                    showToast('⚠️ 导出库加载中，请稍后再试');
+                    return;
+                }
+                showToast('📸 正在生成图片...');
+                // 临时显示课表面板来截图
+                const wasActive = timetableSection.classList.contains('active');
+                timetableSection.classList.add('active');
+                const captureEl = $('#timetableCapture');
+
+                setTimeout(() => {
+                    html2canvas(captureEl, {
+                        backgroundColor: getComputedStyle(document.body).getPropertyValue(
+                            '--bg-gradient-start').trim() || '#0f172a',
+                        scale: 2,
+                        useCORS: true,
+                    }).then(canvas => {
+                        if (!wasActive) timetableSection.classList.remove('active');
+                        const link = document.createElement('a');
+                        const now = new Date();
+                        link.download =
+                            `课表_${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}.png`;
+                        link.href = canvas.toDataURL('image/png');
+                        link.click();
+                        showToast('✅ 课表图片已下载');
+                    }).catch(err => {
+                        if (!wasActive) timetableSection.classList.remove('active');
+                        console.error('导出失败', err);
+                        showToast('❌ 导出失败，请重试');
+                    });
+                }, 300);
+            }
+
+            // ==================== Toast ====================
+            let toastTimer;
+
+            function showToast(msg) {
+                clearTimeout(toastTimer);
+                toast.textContent = msg;
+                toast.classList.add('show');
+                toastTimer = setTimeout(() => toast.classList.remove('show'), 2200);
+            }
+
+            // ==================== 全局刷新 ====================
+            function refreshAll() {
+                nextId = getMaxId() + 1;
+                createClassCards();
+                if (currentView === 'list') renderListView();
+                renderTimetable();
+                currentIndex = getCurrentClassIndex();
                 updateCards();
-                updateCardStatus(); // 新增：窗口大小改变时也更新状态
-            });
-            // 精准滑动支持
-            let startX = 0;
-            let startY = 0;
-            let isSwiping = false;
-            let startCurrentIndex = 0;
-            scheduleContainer.addEventListener('mousedown', function(e) {
-                startX = e.clientX;
-                startY = e.clientY;
+                updateCurrentClass();
+                updateCardStatus();
+            }
+
+            // ==================== 时间更新 ====================
+            let lastMinute = -1;
+
+            function updateDateTime() {
+                const now = new Date();
+                $('#currentDate').textContent = now.toLocaleDateString('zh-CN', { year: 'numeric', month: 'long',
+                    day: 'numeric', weekday: 'long' });
+                $('#currentTime').textContent = now.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit',
+                    second: '2-digit' });
+
+                const curMin = now.getMinutes();
+                if (curMin !== lastMinute) {
+                    lastMinute = curMin;
+                    const all = getAllClasses();
+                    if (all.length > 0) {
+                        const prevIdx = currentIndex;
+                        const newIdx = getCurrentClassIndex();
+                        if (newIdx !== prevIdx) {
+                            currentIndex = newIdx;
+                            if (currentView === 'card') updateCards();
+                        }
+                        updateCurrentClass();
+                        updateCardStatus();
+                    }
+                    if (currentView === 'list') renderListView();
+                }
+                // 每秒更新状态（只更新状态文字，不重建 DOM）
+                if (currentView === 'card') updateCardStatus();
+            }
+
+            // ==================== 滑动交互 ====================
+            let startX, startY, isSwiping, startIdx;
+
+            function handleSwipeStart(x, y) {
+                if (currentView !== 'card') return;
+                startX = x;
+                startY = y;
                 isSwiping = true;
-                startCurrentIndex = currentIndex;
+                startIdx = currentIndex;
                 scheduleContainer.style.cursor = 'grabbing';
-                e.preventDefault();
-            });
-            scheduleContainer.addEventListener('mousemove', function(e) {
+            }
+
+            function handleSwipeMove(x, y, preventDefaultFn) {
                 if (!isSwiping) return;
-                const diffX = e.clientX - startX;
-                const diffY = e.clientY - startY;
-                // 判断是否为水平滑动
-                if (Math.abs(diffX) > Math.abs(diffY)) {
-                    // 根据滑动距离计算应该切换的课程数
-                    const cardWidth = baseWidth + spacing;
-                    const cardsToMove = Math.round(diffX / cardWidth);
-                    // 计算新索引
-                    let newIndex = startCurrentIndex - cardsToMove;
-                    const allClasses = getAllClasses();
-                    const totalCards = allClasses.length;
-                    if (totalCards > 0) {
-                        // 循环处理索引
-                        if (newIndex < 0) {
-                            newIndex = totalCards + (newIndex % totalCards);
-                        } else if (newIndex >= totalCards) {
-                            newIndex = newIndex % totalCards;
-                        }
-                        // 如果索引改变，更新视图
-                        if (newIndex !== currentIndex) {
-                            currentIndex = newIndex;
+                const dx = x - startX;
+                const dy = y - startY;
+                if (Math.abs(dx) > Math.abs(dy) && preventDefaultFn) {
+                    preventDefaultFn();
+                }
+                if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 10) {
+                    const cardW = baseWidth + spacing;
+                    const moves = Math.round(dx / cardW);
+                    let newIdx = startIdx - moves;
+                    const all = getAllClasses();
+                    const total = all.length;
+                    if (total > 0) {
+                        if (newIdx < 0) newIdx = total + (newIdx % total);
+                        else if (newIdx >= total) newIdx = newIdx % total;
+                        if (newIdx !== currentIndex) {
+                            currentIndex = newIdx;
                             updateCards();
                             updateCurrentClass();
-                            updateCardStatus(); // 新增：滑动时也更新状态
                         }
                     }
                 }
-            });
-            scheduleContainer.addEventListener('mouseup', function() {
+            }
+
+            function handleSwipeEnd() {
                 isSwiping = false;
                 scheduleContainer.style.cursor = 'grab';
-            });
-            scheduleContainer.addEventListener('mouseleave', function() {
-                isSwiping = false;
-                scheduleContainer.style.cursor = 'grab';
-            });
-            // 触摸滑动支持
-            scheduleContainer.addEventListener('touchstart', function(e) {
-                startX = e.touches[0].clientX;
-                startY = e.touches[0].clientY;
-                isSwiping = true;
-                startCurrentIndex = currentIndex;
-            });
-            scheduleContainer.addEventListener('touchmove', function(e) {
-                if (!isSwiping) return;
-                const diffX = e.touches[0].clientX - startX;
-                const diffY = e.touches[0].clientY - startY;
-                // 判断是否为水平滑动
-                if (Math.abs(diffX) > Math.abs(diffY)) {
-                    e.preventDefault();
-                    // 根据滑动距离计算应该切换的课程数
-                    const cardWidth = baseWidth + spacing;
-                    const cardsToMove = Math.round(diffX / cardWidth);
-                    // 计算新索引
-                    let newIndex = startCurrentIndex - cardsToMove;
-                    const allClasses = getAllClasses();
-                    const totalCards = allClasses.length;
-                    if (totalCards > 0) {
-                        // 循环处理索引
-                        if (newIndex < 0) {
-                            newIndex = totalCards + (newIndex % totalCards);
-                        } else if (newIndex >= totalCards) {
-                            newIndex = newIndex % totalCards;
-                        }
-                        // 如果索引改变，更新视图
-                        if (newIndex !== currentIndex) {
-                            currentIndex = newIndex;
-                            updateCards();
-                            updateCurrentClass();
-                            updateCardStatus(); // 新增：触摸滑动时也更新状态
-                        }
-                    }
+            }
+
+            scheduleContainer.addEventListener('mousedown', e => { e.preventDefault();
+                handleSwipeStart(e.clientX, e.clientY); });
+            scheduleContainer.addEventListener('mousemove', e => handleSwipeMove(e.clientX, e.clientY));
+            scheduleContainer.addEventListener('mouseup', handleSwipeEnd);
+            scheduleContainer.addEventListener('mouseleave', handleSwipeEnd);
+            scheduleContainer.addEventListener('touchstart', e => handleSwipeStart(e.touches[0].clientX, e.touches[0]
+                .clientY), { passive: true });
+            scheduleContainer.addEventListener('touchmove', e => handleSwipeMove(e.touches[0].clientX, e.touches[0].clientY,
+                () => e.preventDefault()), { passive: false });
+            scheduleContainer.addEventListener('touchend', handleSwipeEnd);
+
+            // 卡片上的编辑按钮点击
+            scheduleContainer.addEventListener('click', e => {
+                const editBtnEl = e.target.closest('[data-action="edit"]');
+                if (editBtnEl) {
+                    e.stopPropagation();
+                    const id = parseInt(editBtnEl.getAttribute('data-id'));
+                    const all = getAllClasses();
+                    const course = all.find(c => c.id === id);
+                    if (course) openEditModal(course);
                 }
             });
-            scheduleContainer.addEventListener('touchend', function() {
-                isSwiping = false;
+
+            // ==================== 事件绑定 ====================
+            btnCardView.addEventListener('click', () => switchView('card'));
+            btnListView.addEventListener('click', () => switchView('list'));
+            btnExport.addEventListener('click', exportAsImage);
+            btnExportTable.addEventListener('click', exportAsImage);
+            todayBtn.addEventListener('click', () => {
+                currentIndex = getCurrentClassIndex();
+                if (currentView === 'card') updateCards();
+                else renderListView();
+                updateCurrentClass();
+                updateCardStatus();
             });
-            // 初始化当前课程
-            updateCurrentClass();
-            // 初始化卡片
-            createClassCards();
-            // 设置默认主题
-            document.body.className = 'theme-dark-blue';
-        });
+            editBtn.addEventListener('click', () => {
+                renderTimetable();
+                timetableSection.classList.add('active');
+            });
+            closeTimetable.addEventListener('click', () => timetableSection.classList.remove('active'));
+            btnAddCourse.addEventListener('click', () => openEditModal(null));
+            $('#btnSaveCourse').addEventListener('click', saveCourse);
+            $('#btnCancelEdit').addEventListener('click', closeEditModal);
+            $('#btnDeleteCourse').addEventListener('click', deleteCourse);
+            editModalOverlay.addEventListener('click', e => { if (e.target === editModalOverlay) closeEditModal(); });
+
+            // 主题切换
+            $$('.theme-dot').forEach(dot => {
+                dot.addEventListener('click', function() {
+                    const theme = this.getAttribute('data-theme');
+                    document.body.className = theme === 'default' ? '' : `theme-${theme}`;
+                });
+            });
+
+            // 键盘快捷操作
+            document.addEventListener('keydown', e => {
+                if (editModalOverlay.classList.contains('active')) {
+                    if (e.key === 'Escape') closeEditModal();
+                    if (e.key === 'Enter' && e.metaKey) saveCourse();
+                    return;
+                }
+                if (timetableSection.classList.contains('active')) {
+                    if (e.key === 'Escape') timetableSection.classList.remove('active');
+                    return;
+                }
+                if (e.key === 'ArrowLeft' && currentView === 'card') {
+                    currentIndex = (currentIndex - 1 + getAllClasses().length) % getAllClasses().length;
+                    updateCards();
+                    updateCurrentClass();
+                }
+                if (e.key === 'ArrowRight' && currentView === 'card') {
+                    currentIndex = (currentIndex + 1) % getAllClasses().length;
+                    updateCards();
+                    updateCurrentClass();
+                }
+                if (e.key === 't' || e.key === 'T') {
+                    renderTimetable();
+                    timetableSection.classList.add('active');
+                }
+                if (e.key === 'l' || e.key === 'L') switchView('list');
+                if (e.key === 'c' || e.key === 'C') switchView('card');
+                if (e.key === 'n' || e.key === 'N') openEditModal(null);
+            });
+
+            window.addEventListener('resize', () => {
+                calcCardSizes();
+                if (currentView === 'card') updateCards();
+                else renderListView();
+            });
+
+            // 双击标题重置数据
+            $('#currentDate').addEventListener('dblclick', resetToDefault);
+
+            // ==================== 初始化 ====================
+            function init() {
+                document.body.className = 'theme-dark-blue';
+                updateDateTime();
+                setInterval(updateDateTime, 1000);
+                createClassCards();
+                renderListView(); // 预热列表视图
+                currentIndex = getCurrentClassIndex();
+                updateCards();
+                updateCurrentClass();
+                switchView('card');
+            }
+
+            init();
+            console.log('📋 课表 Pro 已就绪');
+            console.log('  💾 数据自动保存到浏览器');
+            console.log('  🖼️ 卡片 / 列表 双视图');
+            console.log('  ⌨️  键盘快捷键：← → 切换课程，C/L 切换视图，T 打开课表，N 添加课程');
+            console.log('  📱 双击日期可恢复默认课表');
+        })();
     </script>
 </body>
 </html>
