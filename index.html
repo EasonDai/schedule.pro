@@ -139,7 +139,7 @@
             top: 0;
             left: 0;
             width: 100%;
-            padding: 12px 16px;
+            padding: calc(12px + env(safe-area-inset-top, 0px)) 16px 12px 16px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -195,7 +195,7 @@
         /* ===== 搜索栏 ===== */
         .search-bar {
             position: absolute;
-            top: 12px;
+            top: calc(12px + env(safe-area-inset-top, 0px));
             left: 50%;
             transform: translateX(-50%) translateY(-80px);
             z-index: 15;
@@ -464,7 +464,7 @@
             height: 100%;
             display: flex;
             flex-direction: column;
-            padding: 105px 16px 140px;
+            padding: calc(105px + env(safe-area-inset-top, 0px)) 16px calc(140px + env(safe-area-inset-bottom, 0px));
             overflow-y: auto;
             -webkit-overflow-scrolling: touch;
         }
@@ -615,7 +615,7 @@
         /* ===== 当前课程指示条 ===== */
         .current-indicator {
             position: absolute;
-            top: 68px;
+            top: calc(68px + env(safe-area-inset-top, 0px));
             left: 50%;
             transform: translateX(-50%);
             background: rgba(0, 113, 227, 0.85);
@@ -655,7 +655,7 @@
         /* ===== 底部按钮 ===== */
         .bottom-buttons {
             position: absolute;
-            bottom: 24px;
+            bottom: calc(24px + env(safe-area-inset-bottom, 0px));
             left: 0;
             right: 0;
             display: flex;
@@ -664,7 +664,7 @@
             flex-wrap: wrap;
             gap: 10px;
             z-index: 10;
-            padding: 0 16px;
+            padding: 0 calc(16px + env(safe-area-inset-right, 0px)) 0 calc(16px + env(safe-area-inset-left, 0px));
         }
         .today-btn {
             padding: 13px 24px;
@@ -973,7 +973,7 @@
             max-height: 85dvh;
             background: var(--modal-bg);
             border-radius: 22px 22px 0 0;
-            padding: 20px 20px 30px;
+            padding: 20px 20px calc(30px + env(safe-area-inset-bottom, 0px));
             overflow-y: auto;
             transform: translateY(100%);
             transition: transform 0.35s cubic-bezier(0.25, 0.1, 0.25, 1);
@@ -1067,7 +1067,7 @@
         /* ===== Toast 提示 ===== */
         .toast {
             position: fixed;
-            top: 20px;
+            top: calc(20px + env(safe-area-inset-top, 0px));
             left: 50%;
             transform: translateX(-50%) translateY(-120px);
             background: var(--accent-color);
@@ -1131,7 +1131,7 @@
             .current-indicator {
                 font-size: 12px;
                 padding: 6px 12px;
-                top: 56px;
+                top: calc(56px + env(safe-area-inset-top, 0px));
             }
             .theme-popup {
                 gap: 6px;
@@ -1163,6 +1163,35 @@
             .timetable .class-details {
                 font-size: 10px;
             }
+
+            /* 手机端：收拢非核心按钮 */
+            #editBtn, #btnAddCourse, #btnExport, .theme-wrapper {
+                display: none;
+            }
+            .watch-more-btn {
+                display: flex !important;
+                position: absolute;
+                bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+                right: calc(16px + env(safe-area-inset-right, 0px));
+                width: 44px;
+                height: 44px;
+                border-radius: 50%;
+                background: var(--glass-bg);
+                backdrop-filter: blur(18px) saturate(180%);
+                -webkit-backdrop-filter: blur(18px) saturate(180%);
+                border: 1px solid var(--glass-border-strong);
+                color: var(--text-color);
+                font-size: 20px;
+                cursor: pointer;
+                align-items: center;
+                justify-content: center;
+                z-index: 30;
+                box-shadow: var(--glass-shadow-sm);
+                transition: transform 0.15s ease;
+            }
+            .watch-more-btn:active {
+                transform: scale(0.92);
+            }
         }
 
         /* ===== 响应式 - watchOS / 超小屏 ===== */
@@ -1185,7 +1214,7 @@
             .current-indicator {
                 font-size: 11px;
                 padding: 5px 10px;
-                top: 48px;
+                top: calc(48px + env(safe-area-inset-top, 0px));
             }
             .schedule-card {
                 border-radius: 18px;
@@ -1214,7 +1243,7 @@
                 left: 12px;
             }
             .list-view-container {
-                padding: 82px 10px 120px;
+                padding: calc(82px + env(safe-area-inset-top, 0px)) 10px calc(120px + env(safe-area-inset-bottom, 0px));
             }
             .list-header h2 {
                 font-size: 18px;
@@ -1326,8 +1355,8 @@
             .watch-more-btn {
                 display: flex !important;
                 position: absolute;
-                bottom: 16px;
-                right: 14px;
+                bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+                right: calc(14px + env(safe-area-inset-right, 0px));
                 width: 44px;
                 height: 44px;
                 border-radius: 50%;
@@ -1348,98 +1377,87 @@
                 transform: scale(0.92);
             }
 
-            /* watch 菜单遮罩 */
-            .watch-menu-overlay {
-                display: none;
-                position: fixed;
-                inset: 0;
-                background: rgba(0, 0, 0, 0.5);
-                backdrop-filter: blur(6px);
-                -webkit-backdrop-filter: blur(6px);
-                z-index: 150;
-                align-items: flex-end;
-                justify-content: center;
-            }
-            .watch-menu-overlay.show {
-                display: flex;
-            }
-            .watch-menu {
-                width: 100%;
-                background: var(--modal-bg);
-                backdrop-filter: blur(30px) saturate(200%);
-                -webkit-backdrop-filter: blur(30px) saturate(200%);
-                border-radius: 20px 20px 0 0;
-                padding: 16px 14px 24px;
-                display: flex;
-                flex-wrap: wrap;
-                gap: 8px;
-                justify-content: center;
-                border-top: 1px solid var(--glass-border-strong);
-                box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.5);
-                animation: slideUp 0.3s ease;
-            }
-            @keyframes slideUp {
-                from { transform: translateY(100%); }
-                to { transform: translateY(0); }
-            }
-            .watch-menu-item {
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                gap: 4px;
-                width: 68px;
-                padding: 10px 4px;
-                border-radius: 14px;
-                background: var(--glass-bg);
-                border: 1px solid var(--glass-border);
-                color: var(--text-color);
-                font-size: 10px;
-                cursor: pointer;
-                transition: all 0.15s ease;
-                text-align: center;
-                -webkit-appearance: none;
-                font-family: inherit;
-            }
-            .watch-menu-item i {
-                font-size: 18px;
-            }
-            .watch-menu-item:active {
-                background: var(--glass-bg-strong);
-                transform: scale(0.95);
-            }
-            .watch-menu-divider {
-                width: 100%;
-                height: 1px;
-                background: var(--glass-border);
-                margin: 2px 0;
-            }
-            .watch-menu-close {
-                width: 100%;
-                padding: 13px;
-                border-radius: 14px;
-                background: var(--glass-bg);
-                border: 1px solid var(--glass-border);
-                color: var(--class-details-color);
-                font-size: 15px;
-                cursor: pointer;
-                margin-top: 4px;
-                font-family: inherit;
-            }
         }
 
-        /* 默认隐藏 watch 按钮（桌面/平板） */
+        /* ===== 更多菜单（手机 + watch 共用） ===== */
         .watch-more-btn {
             display: none;
-            position: absolute;
-            bottom: 16px;
-            right: 14px;
-            width: 44px;
-            height: 44px;
-            border-radius: 50%;
-            z-index: 30;
         }
         .watch-menu-overlay {
             display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            z-index: 150;
+            align-items: flex-end;
+            justify-content: center;
+        }
+        .watch-menu-overlay.show {
+            display: flex;
+        }
+        .watch-menu {
+            width: 100%;
+            background: var(--modal-bg);
+            backdrop-filter: blur(30px) saturate(200%);
+            -webkit-backdrop-filter: blur(30px) saturate(200%);
+            border-radius: 20px 20px 0 0;
+            padding: 16px 14px calc(24px + env(safe-area-inset-bottom, 0px));
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+            border-top: 1px solid var(--glass-border-strong);
+            box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.5);
+            animation: slideUp 0.3s ease;
+        }
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+        .watch-menu-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            width: 72px;
+            padding: 10px 4px;
+            border-radius: 14px;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            color: var(--text-color);
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            text-align: center;
+            -webkit-appearance: none;
+            font-family: inherit;
+        }
+        .watch-menu-item i {
+            font-size: 20px;
+        }
+        .watch-menu-item:active {
+            background: var(--glass-bg-strong);
+            transform: scale(0.95);
+        }
+        .watch-menu-divider {
+            width: 100%;
+            height: 1px;
+            background: var(--glass-border);
+            margin: 2px 0;
+        }
+        .watch-menu-close {
+            width: 100%;
+            padding: 13px;
+            border-radius: 14px;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            color: var(--class-details-color);
+            font-size: 15px;
+            cursor: pointer;
+            margin-top: 4px;
+            font-family: inherit;
         }
 
         /* ===== 导出预览高亮 ===== */
@@ -1541,7 +1559,7 @@
             </div>
         </div>
 
-        <!-- watchOS 更多按钮 -->
+        <!-- 更多按钮（手机 / watch） -->
         <button class="watch-more-btn" id="watchMoreBtn" title="功能菜单">
             <i class="fas fa-ellipsis-h"></i>
         </button>
