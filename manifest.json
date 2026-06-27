@@ -1,0 +1,25 @@
+{
+    "name": "课表 Pro",
+    "short_name": "课表",
+    "description": "一款优雅的课程表管理应用",
+    "start_url": "./schedule.html",
+    "scope": "./",
+    "display": "standalone",
+    "orientation": "portrait",
+    "background_color": "#0f172a",
+    "theme_color": "#0f172a",
+    "lang": "zh-CN",
+    "icons": [
+        {
+            "src": "apple-touch-icon.png",
+            "sizes": "180x180",
+            "type": "image/png"
+        },
+        {
+            "src": "apple-touch-icon.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any maskable"
+        }
+    ]
+}
